@@ -1,0 +1,154 @@
+ENDPOINTS DE FARMACIA PARA INTERNACION
+======================================
+
+Reemplazar IP_FARMACIA por la IP del servidor donde corre Farmacia.
+
+URL_BASE_FARMACIA=http://IP_FARMACIA:8000
+
+Ejemplo:
+URL_BASE_FARMACIA=http://192.168.1.100:8000
+
+
+1. CONSULTAR PRODUCTOS
+----------------------
+
+GET /api/v1/farmacia/productos/catalogo
+
+URL completa:
+http://IP_FARMACIA:8000/api/v1/farmacia/productos/catalogo
+
+Con búsqueda:
+http://IP_FARMACIA:8000/api/v1/farmacia/productos/catalogo?buscar=paracetamol
+
+Ejemplo curl:
+
+curl "http://IP_FARMACIA:8000/api/v1/farmacia/productos/catalogo"
+
+Respuesta:
+
+[
+  {
+    "id_producto": 8,
+    "codigo": "MED-008",
+    "nombre": "Paracetamol",
+    "principio_activo": "Paracetamol",
+    "concentracion": "500 mg",
+    "presentacion": "Tableta",
+    "unidad_medida": "Unidad",
+    "requiere_receta": true
+  }
+]
+
+Internacion debe guardar id_producto. No relacionar productos por nombre.
+
+
+2. ENVIAR SOLICITUD DE CONSUMO INTERNO
+--------------------------------------
+
+POST /api/v1/farmacia/consumos-internos/solicitudes
+Content-Type: application/json
+
+Ejemplo curl:
+
+curl -X POST "http://IP_FARMACIA:8000/api/v1/farmacia/consumos-internos/solicitudes" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_solicitud": 80,
+    "id_usuario": 12,
+    "fecha_solicitud": "2026-09-01",
+    "observacion": "Solicitud para sala de internacion",
+    "detalles": [
+      {
+        "id_detalle": 801,
+        "id_producto": 8,
+        "cantidad": 5
+      }
+    ]
+  }'
+
+Internacion debe enviar:
+- id_solicitud
+- id_usuario
+- fecha_solicitud
+- id_detalle
+- id_producto
+- cantidad
+
+Internacion NO debe enviar id_lote, stock, precio ni costo. Farmacia selecciona
+el lote disponible y valida vencimiento y existencia.
+
+Respuesta esperada: consumo registrado en estado PENDIENTE.
+
+
+3. CONFIRMAR ENTREGA
+--------------------
+
+Cuando Farmacia confirme que puede entregar:
+
+PUT /consumo-interno/{id_consumo}/confirmar
+
+Ejemplo:
+
+curl -X PUT "http://IP_FARMACIA:8000/consumo-interno/25/confirmar"
+
+Esta operación descuenta el stock y registra el movimiento de salida.
+
+
+4. EJEMPLO EN PYTHON
+--------------------
+
+import os
+import requests
+
+URL_FARMACIA = os.getenv(
+    "URL_MODULO_FARMACIA",
+    "http://IP_FARMACIA:8000"
+)
+
+def consultar_productos(buscar=None):
+    url = f"{URL_FARMACIA}/api/v1/farmacia/productos/catalogo"
+    params = {"buscar": buscar} if buscar else {}
+    respuesta = requests.get(url, params=params, timeout=5)
+    respuesta.raise_for_status()
+    return respuesta.json()
+
+def enviar_solicitud():
+    url = f"{URL_FARMACIA}/api/v1/farmacia/consumos-internos/solicitudes"
+    datos = {
+        "id_solicitud": 80,
+        "id_usuario": 12,
+        "fecha_solicitud": "2026-09-01",
+        "observacion": "Solicitud para Internacion",
+        "detalles": [
+            {"id_detalle": 801, "id_producto": 8, "cantidad": 5}
+        ]
+    }
+    respuesta = requests.post(url, json=datos, timeout=5)
+    respuesta.raise_for_status()
+    return respuesta.json()
+
+
+5. CONFIGURACION EN INTERNACION
+-------------------------------
+
+Agregar al archivo .env de Internacion:
+
+URL_MODULO_FARMACIA=http://IP_FARMACIA:8000
+
+Antes de probar, verificar que Internacion pueda acceder a la IP y puerto de
+Farmacia. Si Seguridad ya esta integrada, agregar el token de servicio segun el
+contrato acordado entre ambos equipos.
+
+
+6. REGLAS DEL FLUJO
+-------------------
+
+1. Internacion consulta el catalogo.
+2. Guarda el id_producto.
+3. Crea su solicitud y la envia a Farmacia.
+4. Farmacia registra la solicitud como PENDIENTE.
+5. Farmacia selecciona lote y prepara la entrega.
+6. Farmacia confirma, descuenta stock y registra la salida.
+
+El endpoint es idempotente: repetir la misma solicitud no debe crear otro
+consumo para el mismo id_solicitud.
