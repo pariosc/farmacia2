@@ -2,10 +2,48 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from asyncpg import Connection
 
 from configuracion.conexion import get_conn
-from entidades.farmacia_consumo import ConsumoInternoIn
+from entidades.farmacia_consumo import ConsumoInternoIn, SolicitudInternacionIn
 from modelo import m_consumo_interno as modelo
 
 router = APIRouter(prefix="/consumo-interno", tags=["Farmacia - Consumo Interno"])
+
+router_integracion = APIRouter(
+    prefix="/api/v1/farmacia/consumos-internos",
+    tags=["Integración - Internación"],
+)
+
+
+@router_integracion.post("/solicitudes", status_code=201)
+async def recibir_solicitud_internacion(
+    datos: SolicitudInternacionIn, conn: Connection = Depends(get_conn)
+):
+    """Recibe una solicitud sin exigir que Internación conozca los lotes."""
+    existente = await conn.fetchrow(
+        "SELECT id_consumo FROM tf_consumos_internos "
+        "WHERE id_solicitud_insumo = $1 AND estado <> 'ANULADO' "
+        "ORDER BY id_consumo DESC LIMIT 1",
+        datos.id_solicitud,
+    )
+    if existente:
+        return await modelo.obtener(conn, existente["id_consumo"])
+    consumo = ConsumoInternoIn(
+        id_solicitud_insumo=datos.id_solicitud,
+        id_usuario=datos.id_usuario,
+        fecha_consumo=datos.fecha_solicitud,
+        observacion=datos.observacion,
+        detalles=[
+            {
+                "id_detalle_solicitud_consumo": detalle.id_detalle,
+                "id_producto": detalle.id_producto,
+                "cantidad_entregada": detalle.cantidad,
+            }
+            for detalle in datos.detalles
+        ],
+    )
+    try:
+        return await modelo.registrar(conn, consumo)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
 
 
 @router.get("/")

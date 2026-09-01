@@ -39,3 +39,19 @@ class ConsumoInternoIn(BaseModel):
                 "id_prescripcion (flujo conectado a Internación) — al menos uno."
             )
         return self
+
+
+class DetalleSolicitudInternacionIn(BaseModel):
+    id_detalle: int = Field(gt=0)
+    id_producto: int = Field(gt=0)
+    cantidad: Decimal = Field(gt=0, max_digits=14, decimal_places=2)
+
+
+class SolicitudInternacionIn(BaseModel):
+    """Contrato simple para que Internación solicite productos a Farmacia."""
+
+    id_solicitud: int = Field(gt=0)
+    id_usuario: int = Field(gt=0)
+    fecha_solicitud: date = Field(default_factory=date.today)
+    observacion: Optional[str] = Field(default=None, max_length=255)
+    detalles: List[DetalleSolicitudInternacionIn] = Field(min_length=1)

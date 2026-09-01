@@ -96,6 +96,7 @@ class TestCatalogoOpenAPI(unittest.TestCase):
         self.assertIn("/api/v1/farmacia/dispensaciones/{id_dispensacion}/cobro", rutas)
         self.assertIn("/api/v1/farmacia/dispensaciones/{id_dispensacion}/pago", rutas)
         self.assertIn("/dispensacion/paciente/{id_trazabilidad}/recetas", rutas)
+        self.assertIn("/api/v1/farmacia/consumos-internos/solicitudes", rutas)
 
 
 class TestContratoReceta(unittest.TestCase):
