@@ -1,0 +1,135 @@
+# Guía de integración — Farmacia
+
+## Objetivo
+
+Cada módulo conserva sus datos. Farmacia administra productos, lotes, reservas,
+precios y movimientos; no modifica directamente recetas, pacientes, facturas,
+usuarios ni solicitudes externas.
+
+## Configuración
+
+Copiar `.env.example` a `.env` y completar las URLs confirmadas:
+
+```dotenv
+INTEGRACION_ATENCION_URL=http://IP_ATENCION:8000
+INTEGRACION_COBROS_URL=http://IP_COBROS:8000
+INTEGRACION_SEGURIDAD_URL=http://IP_SEGURIDAD:8000
+INTEGRACION_SOLICITUDES_URL=http://IP_INTERNACION:8000
+INTEGRACION_TIMEOUT_SEGUNDOS=5
+RESERVA_DISPENSACION_MINUTOS=30
+```
+
+No subir `.env`, tokens, contraseñas ni volcados. Antes de conectar cada equipo
+debe confirmar URL, método, parámetros, JSON, estados, errores, autenticación e
+idempotencia.
+
+## Atención: recetas
+
+```http
+GET /clinica/prescripcion/soap/{numero_de_receta}
+GET /integracion/farmacia/recetas/{id_trazabilidad}
+```
+
+Para dispensar, Atención debe devolver receta, versión, estado `FIRMADA`,
+identificador de paciente y líneas con `id_prescripcion`, `id_producto`,
+`cantidad_prescrita` e instrucciones. Nunca relacionar medicamentos por nombre.
+
+Farmacia expone el proxy:
+
+```http
+GET /dispensacion/paciente/{id_trazabilidad}/recetas
+POST /dispensacion/desde-receta/{numero_receta}
+PUT /dispensacion/{id_dispensacion}/corregir
+```
+
+Se pueden quitar líneas o entregar cantidades parciales. Solo se añaden líneas
+existentes en la receta. Corregir únicamente en `PENDIENTE_PAGO`; después del
+pago se solicita anulación.
+
+## Cobros: proforma y pago
+
+```http
+GET /api/v1/farmacia/dispensaciones/{id_dispensacion}/cobro
+PUT /api/v1/farmacia/dispensaciones/{id_dispensacion}/pago
+PUT /api/v1/farmacia/dispensaciones/{id_dispensacion}/anulacion-confirmada
+```
+
+La consulta devuelve `id_dispensacion`, `version`, `estado`, `reserva_hasta`,
+paciente, `total` como texto decimal y `cobrable`. El pago debe enviar
+`id_factura`, paciente, total, versión y estado `PAGADA`. Farmacia valida monto,
+paciente, versión, reserva vigente y relación factura-dispensación 1:1.
+
+El operador entrega con:
+
+```http
+PUT /dispensacion/{id_dispensacion}/confirmar
+```
+
+La anulación pagada requiere primero solicitud y luego confirmación de Cobros.
+
+## Seguridad: sesión y roles
+
+Confirmar una ruta equivalente a:
+
+```http
+GET /seguridad/sesion
+Authorization: Bearer <token>
+```
+
+Debe devolver `id_usuario`, `activo` y `roles`. Roles sugeridos: `FARMACIA_OPERADOR`,
+`FARMACIA_ADMIN` y `FARMACIA_CONSULTA`. Con
+`INTEGRACION_SEGURIDAD_URL` configurada, Farmacia no confía en el usuario del
+navegador.
+
+## Internación: consumo interno
+
+Confirmar las rutas:
+
+```http
+GET /solicitudes-insumo/{id_solicitud}
+GET /solicitudes-insumo/{id_solicitud}/detalles
+```
+
+Cada línea debe incluir `id_detalle`, `id_producto`, cantidad autorizada,
+cantidad ya atendida, área y estado. Farmacia registra `PENDIENTE`; al confirmar
+valida lotes/vencimiento/stock, descuenta, registra `SALIDA` y notifica cantidades
+entregadas idempotentemente. Con la integración activa no aceptar IDs manuales.
+
+## Catálogo para Atención
+
+```http
+GET /api/v1/farmacia/productos/catalogo
+GET /api/v1/farmacia/productos/catalogo/{id_producto}
+```
+
+Atención debe conservar `id_producto`; el catálogo no expone stock, lotes,
+costos ni precios internos.
+
+## Prueba de aceptación
+
+1. Receta firmada → nota → reserva.
+2. Cobros consulta total → genera comprobante → notifica `PAGADA`.
+3. Farmacia confirma entrega → movimiento `SALIDA`.
+4. Repetir pago y verificar que no duplica factura ni stock.
+5. Probar corrección antes del pago y anulación después del pago.
+6. Repetir con solicitud de consumo interno autorizada.
+
+## Dónde adaptar
+
+- URLs: `configuracion/parametro.py` y `.env`.
+- Cliente HTTP: `configuracion/integracion.py`.
+- Atención: `modelo/m_integracion_atencion.py`.
+- Seguridad: `configuracion/seguridad.py`.
+- Dispensación/Cobros: `routers/r_dispensacion*.py`.
+- Consumo: `modelo/m_consumo_interno.py`.
+
+## Base de datos
+
+Con respaldo previo, ejecutar el único script de esta entrega:
+
+```bash
+psql "$DATABASE_URL" -X -f migrations/006_dispensacion_integrada.sql
+```
+
+La migración agrega precios, versiones, reservas, estados de pago, subtotales
+y relación 1:1 con comprobantes.
