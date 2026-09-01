@@ -86,13 +86,17 @@ class _Receta(BaseModel):
 
 
 class _PrescripcionPaciente(BaseModel):
-    """Respuesta actual; los campos opcionales son los pedidos para mañana."""
+    """Acepta el contrato plano publicado por Atención y el nombre anterior."""
 
     model_config = ConfigDict(extra="allow")
-    id_prescripcion: int = Field(gt=0)
+    id_prescripcion: int = Field(
+        gt=0, validation_alias=AliasChoices("id_prescripcion", "codigo_item")
+    )
     medicamento: str = Field(
         min_length=1,
-        validation_alias=AliasChoices("medicamento", "nombre_producto"),
+        validation_alias=AliasChoices(
+            "medicamento", "nombre_producto", "nombre_medicamento"
+        ),
     )
     dosis: str | None = None
     cantidad: Decimal = Field(
@@ -104,10 +108,21 @@ class _PrescripcionPaciente(BaseModel):
         validation_alias=AliasChoices("indicaciones", "dosis_instrucciones"),
     )
     id_producto: int | None = Field(default=None, gt=0)
-    id_receta: int | None = Field(default=None, gt=0)
-    numero_receta: str | None = None
-    estado_receta: str | None = None
+    id_receta: int | None = Field(
+        default=None, gt=0, validation_alias=AliasChoices("id_receta", "codigo_receta")
+    )
+    numero_receta: str | None = Field(
+        default=None, validation_alias=AliasChoices("numero_receta", "codigo_receta")
+    )
+    estado_receta: str | None = Field(
+        default=None, validation_alias=AliasChoices("estado_receta", "estado")
+    )
     version_receta: int | None = Field(default=None, gt=0)
+
+    @field_validator("numero_receta", mode="before")
+    @classmethod
+    def normalizar_numero(cls, valor):
+        return None if valor is None else str(valor).strip()
 
 
 def normalizar_receta(payload: dict | None) -> dict | None:
@@ -165,7 +180,10 @@ def normalizar_prescripciones_paciente(
             faltantes.append("id_producto")
         if linea.id_receta is None and not linea.numero_receta:
             faltantes.append("id_receta_o_numero_receta")
-        estado = (linea.estado_receta or "").strip().upper()
+        # La ruta publicada por Atención solo devuelve recetas vigentes y no
+        # envía estado todavía; en ese contrato se considera FIRMADA. Cuando
+        # Atención envíe estado explícito, se valida el valor recibido.
+        estado = (linea.estado_receta or ("FIRMADA" if linea.id_receta else "")).strip().upper()
         if not estado:
             faltantes.append("estado_receta")
         elif estado != "FIRMADA":
@@ -182,4 +200,32 @@ def normalizar_prescripciones_paciente(
         "prescripciones": resultado,
         "integrable": bool(resultado) and not faltantes_globales,
         "faltantes": sorted(faltantes_globales),
+    }
+
+
+def receta_desde_prescripciones_paciente(resultado: dict, codigo_receta: int) -> dict:
+    """Convierte el contrato plano de Atención al formato interno de receta."""
+    lineas = [
+        item for item in resultado.get("prescripciones", [])
+        if item.get("id_receta") == codigo_receta
+    ]
+    if not lineas:
+        raise IntegracionError("La trazabilidad no contiene esa receta")
+    if any(not item.get("integrable") for item in lineas):
+        raise IntegracionError("La receta no tiene referencias suficientes para dispensar")
+    return {
+        "id_receta": codigo_receta,
+        "version": max((item.get("version_receta") or 1) for item in lineas),
+        "estado": "FIRMADA",
+        "paciente": {"id_paciente": resultado["id_trazabilidad"]},
+        "detalles": [
+            {
+                "id_prescripcion": item["id_prescripcion"],
+                "id_producto": item["id_producto"],
+                "nombre_producto": item["medicamento"],
+                "cantidad_prescrita": item["cantidad"],
+                "dosis_instrucciones": item.get("indicaciones") or item.get("dosis"),
+            }
+            for item in lineas
+        ],
     }

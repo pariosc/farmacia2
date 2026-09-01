@@ -14,6 +14,7 @@ from modelo import m_dispensacion as modelo
 from modelo.m_integracion_atencion import (
     normalizar_prescripciones_paciente,
     normalizar_receta,
+    receta_desde_prescripciones_paciente,
     obtener_prescripciones_por_trazabilidad,
     obtener_receta_por_soap,
 )
@@ -102,6 +103,41 @@ async def registrar_desde_receta(
         return await modelo.registrar_desde_receta(
             conn, numero_receta, receta, datos, config.reserva_dispensacion_minutos
         )
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@router.post("/desde-trazabilidad/{id_trazabilidad}", status_code=201)
+async def registrar_desde_trazabilidad(
+    id_trazabilidad: str,
+    datos: NotaDesdeRecetaIn,
+    request: Request,
+    conn: Connection = Depends(get_conn),
+    identidad: dict | None = Depends(roles_operacion),
+):
+    """Crea una nota usando el JSON plano publicado por Atención."""
+    try:
+        payload = await obtener_prescripciones_por_trazabilidad(
+            request.app.state.http_integraciones, id_trazabilidad
+        )
+        resultado = normalizar_prescripciones_paciente(payload, id_trazabilidad)
+        if not resultado or not resultado["prescripciones"]:
+            raise HTTPException(status_code=404, detail="Paciente sin recetas")
+        codigos = {item.get("id_receta") for item in resultado["prescripciones"]}
+        if len(codigos) != 1:
+            raise HTTPException(
+                status_code=409,
+                detail="Indique una receta específica cuando el paciente tenga varias",
+            )
+        receta = receta_desde_prescripciones_paciente(resultado, codigos.pop())
+        if identidad:
+            datos = datos.model_copy(update={"id_usuario": identidad["id_usuario"]})
+        return await modelo.registrar_desde_receta(
+            conn, receta["id_receta"], receta, datos,
+            config.reserva_dispensacion_minutos,
+        )
+    except IntegracionError as error:
+        raise _error_integracion(error) from error
     except ValueError as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 

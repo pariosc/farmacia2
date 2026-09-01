@@ -142,3 +142,25 @@ class TestContratoReceta(unittest.TestCase):
             "PAC-2026-00101",
         )
         self.assertTrue(resultado["integrable"])
+
+    def test_contrato_plano_de_atencion_queda_listo_para_farmacia(self):
+        resultado = normalizar_prescripciones_paciente(
+            [{
+                "codigo_receta": 12,
+                "codigo_item": 45,
+                "id_producto": 8,
+                "nombre_medicamento": "Paracetamol 500mg",
+                "cantidad": 10,
+                "dosis_instrucciones": "Tomar 1 cada 8 horas",
+                "id_trazabilidad": "ABC-12345",
+                "medico_id": 3,
+                "fecha_creacion": "2026-09-01T09:22:00Z",
+            }],
+            "ABC-12345",
+        )
+        self.assertTrue(resultado["integrable"])
+        linea = resultado["prescripciones"][0]
+        self.assertEqual(linea["id_prescripcion"], 45)
+        self.assertEqual(linea["id_receta"], 12)
+        self.assertEqual(linea["numero_receta"], "12")
+        self.assertEqual(linea["estado_receta"], "FIRMADA")
