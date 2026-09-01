@@ -46,6 +46,7 @@ Usar PostgreSQL `snake_case` y la convención `id_producto`, `id_compra`, `id_lo
 - `frontend/templates/`: plantillas Jinja compartidas.
 - `frontend/static/css/app.css`: sistema visual común.
 - `frontend/static/js/app.js`: utilidades comunes de UI y Fetch.
+- `frontend/static/vendor/bootstrap/`: distribución local de Bootstrap 5.3.8 (CSS, bundle JS con Popper, mapas y licencia) para que la interfaz no dependa de CDN ni de acceso a Internet.
 - `frontend/static/js/productos.js`, `frontend/static/js/proveedores.js`, `frontend/static/js/compras.js`, `frontend/static/js/inventario.js`, `frontend/static/js/dispensaciones.js`, `frontend/static/js/consumos.js` y `frontend/static/js/kardex.js`: comportamiento exclusivo de cada página.
 - `docs/CONTRATOS_INTEGRACION.md`: fuente de los contratos pendientes con Seguridad, Atención, Cobros e Internación/Solicitudes. Una URL configurada no habilita por sí sola una integración.
 - `docs/PLAN_DISPENSACION_INTEGRADA.md`: decisiones y estado de implementación del flujo receta, precio, reserva, pago 1:1 y entrega parcial.
@@ -72,6 +73,7 @@ El frontend tiene siete áreas principales: Productos, Proveedores, Compras, Inv
 ## Reglas de desarrollo frontend
 
 - Centralizar estilos generales en `app.css` y separar JavaScript por página cuando aporte claridad.
+- Servir Bootstrap y cualquier otro recurso visual desde `frontend/static/`; no introducir dependencias de CDN que impidan operar la interfaz sin Internet.
 - Evitar JavaScript inline y reutilizar las utilidades de `app.js`.
 - Usar Fetch API contra las rutas REST existentes y mostrar carga, error, éxito y estado vacío.
 - No incluir datos ficticios en el flujo final. Si se requiere un mock temporal, aislarlo y marcarlo claramente.
