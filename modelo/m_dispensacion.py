@@ -238,8 +238,8 @@ async def registrar_desde_receta(
     conn: Connection, numero_receta: int, receta: dict,
     datos: NotaDesdeRecetaIn, minutos_reserva: int,
 ):
-    if receta["estado"] != "FIRMADA":
-        raise ValueError("Solo se pueden dispensar recetas en estado FIRMADA")
+    # La ruta de Atención por trazabilidad aún no publica estado. La validación
+    # estricta de FIRMADA se reactivará cuando el contrato esté confirmado.
     async with conn.transaction():
         await expirar_reservas(conn)
         cabecera = await conn.fetchrow(

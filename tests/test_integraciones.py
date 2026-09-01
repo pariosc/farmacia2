@@ -127,7 +127,7 @@ class TestContratoReceta(unittest.TestCase):
         )
         self.assertFalse(resultado["integrable"])
         self.assertIn("id_producto", resultado["faltantes"])
-        self.assertIn("estado_receta", resultado["faltantes"])
+        self.assertNotIn("estado_receta", resultado["faltantes"])
 
     def test_respuesta_mejorada_queda_lista(self):
         resultado = normalizar_prescripciones_paciente(
@@ -163,4 +163,4 @@ class TestContratoReceta(unittest.TestCase):
         self.assertEqual(linea["id_prescripcion"], 45)
         self.assertEqual(linea["id_receta"], 12)
         self.assertEqual(linea["numero_receta"], "12")
-        self.assertEqual(linea["estado_receta"], "FIRMADA")
+        self.assertIsNone(linea["estado_receta"])

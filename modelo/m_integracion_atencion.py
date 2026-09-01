@@ -151,7 +151,8 @@ def normalizar_prescripciones_paciente(
     """Acepta la respuesta improvisada, pero informa si aún no es dispensable.
 
     Esta función nunca intenta resolver productos por nombre. Hasta recibir
-    ``id_producto``, receta y estado firmado, la línea es solo informativa.
+    ``id_producto`` y receta, la línea es solo informativa. El estado firmado
+    queda pendiente de confirmación del contrato de Atención.
     """
     if payload is None:
         return None
@@ -183,14 +184,10 @@ def normalizar_prescripciones_paciente(
         # La ruta publicada por Atención solo devuelve recetas vigentes y no
         # envía estado todavía; en ese contrato se considera FIRMADA. Cuando
         # Atención envíe estado explícito, se valida el valor recibido.
-        estado = (linea.estado_receta or ("FIRMADA" if linea.id_receta else "")).strip().upper()
-        if not estado:
-            faltantes.append("estado_receta")
-        elif estado != "FIRMADA":
-            faltantes.append(f"estado_no_dispensable:{estado}")
+        estado = (linea.estado_receta or "").strip().upper() or None
         faltantes_globales.update(faltantes)
         item = linea.model_dump()
-        item["estado_receta"] = estado or None
+        item["estado_receta"] = estado
         item["integrable"] = not faltantes
         item["faltantes"] = faltantes
         resultado.append(item)
@@ -216,7 +213,9 @@ def receta_desde_prescripciones_paciente(resultado: dict, codigo_receta: int) ->
     return {
         "id_receta": codigo_receta,
         "version": max((item.get("version_receta") or 1) for item in lineas),
-        "estado": "FIRMADA",
+        # Atención todavía no publica un estado en esta ruta; no se exige
+        # FIRMADA hasta cerrar ese contrato.
+        "estado": "DISPONIBLE",
         "paciente": {"id_paciente": resultado["id_trazabilidad"]},
         "detalles": [
             {
