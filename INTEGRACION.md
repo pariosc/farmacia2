@@ -133,3 +133,156 @@ psql "$DATABASE_URL" -X -f migrations/006_dispensacion_integrada.sql
 
 La migración agrega precios, versiones, reservas, estados de pago, subtotales
 y relación 1:1 con comprobantes.
+
+## Anexo: endpoints para compartir con los compañeros
+
+### Atención → Farmacia (consumo de Farmacia)
+
+```http
+GET {ATENCION_URL}/clinica/prescripcion/soap/{numero_receta}
+GET {ATENCION_URL}/integracion/farmacia/recetas/{id_trazabilidad}
+```
+
+Respuesta mínima integrable:
+
+```json
+{
+  "id_receta": 321,
+  "version": 1,
+  "estado": "FIRMADA",
+  "id_paciente": "PAC-2026-00101",
+  "detalles": [
+    {
+      "id_prescripcion": 9001,
+      "id_producto": 20,
+      "cantidad_prescrita": 10,
+      "dosis_instrucciones": "Cada 8 horas"
+    }
+  ]
+}
+```
+
+`id_producto` debe ser el identificador entregado por el catálogo de Farmacia.
+
+### Farmacia → Atención (entrega parcial, ruta pendiente)
+
+Solicitar una ruta idempotente equivalente a:
+
+```http
+POST {ATENCION_URL}/integracion/farmacia/dispensaciones/entrega
+```
+
+```json
+{
+  "id_dispensacion": 100,
+  "id_prescripcion": 9001,
+  "cantidad_entregada": 5,
+  "fecha_entrega": "2026-08-31T11:40:00-04:00"
+}
+```
+
+### Farmacia → Cobros (consulta de proforma)
+
+```http
+GET {FARMACIA_URL}/api/v1/farmacia/dispensaciones/{id_dispensacion}/cobro
+```
+
+```json
+{
+  "id_dispensacion": 100,
+  "version": 1,
+  "estado": "PENDIENTE_PAGO",
+  "id_paciente": "PAC-2026-00101",
+  "total": "125.50",
+  "reserva_hasta": "2026-08-31T11:30:00-04:00",
+  "cobrable": true
+}
+```
+
+### Cobros → Farmacia (pago confirmado)
+
+```http
+PUT {FARMACIA_URL}/api/v1/farmacia/dispensaciones/{id_dispensacion}/pago
+```
+
+```json
+{
+  "id_factura": 500,
+  "id_paciente": "PAC-2026-00101",
+  "total": "125.50",
+  "version": 1,
+  "estado": "PAGADA"
+}
+```
+
+La repetición del mismo mensaje debe devolver el mismo resultado y nunca crear
+otra factura ni descontar stock nuevamente.
+
+### Cobros → Farmacia (anulación confirmada)
+
+```http
+PUT {FARMACIA_URL}/api/v1/farmacia/dispensaciones/{id_dispensacion}/anulacion-confirmada
+```
+
+```json
+{
+  "id_factura": 500,
+  "version": 1,
+  "estado": "ANULADA"
+}
+```
+
+### Farmacia → Seguridad (validación de sesión)
+
+```http
+GET {SEGURIDAD_URL}/seguridad/sesion
+Authorization: Bearer <token>
+```
+
+```json
+{
+  "id_usuario": 12,
+  "activo": true,
+  "roles": ["FARMACIA_OPERADOR"]
+}
+```
+
+### Farmacia → Internación/Solicitudes (consumo interno)
+
+Solicitar rutas equivalentes a:
+
+```http
+GET {SOLICITUDES_URL}/solicitudes-insumo/{id_solicitud}
+GET {SOLICITUDES_URL}/solicitudes-insumo/{id_solicitud}/detalles
+```
+
+Cada detalle debe incluir `id_detalle`, `id_producto`,
+`cantidad_autorizada`, `cantidad_atendida`, `area_solicitante` y `estado`.
+
+### Farmacia → Internación/Solicitudes (entrega confirmada)
+
+Solicitar una operación idempotente equivalente a:
+
+```http
+POST {SOLICITUDES_URL}/integracion/farmacia/entregas
+```
+
+```json
+{
+  "id_consumo": 700,
+  "id_solicitud": 80,
+  "detalles": [
+    {"id_detalle": 801, "id_producto": 20, "cantidad_entregada": 5}
+  ]
+}
+```
+
+### Farmacia → Atención (catálogo de productos)
+
+```http
+GET {FARMACIA_URL}/api/v1/farmacia/productos/catalogo
+GET {FARMACIA_URL}/api/v1/farmacia/productos/catalogo/{id_producto}
+```
+
+El catálogo devuelve identificadores y datos descriptivos, pero nunca stock,
+lotes, costos ni credenciales.
