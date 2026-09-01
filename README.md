@@ -6,7 +6,7 @@ Módulo de farmacia hospitalaria con dispensación por receta o venta directa si
 
 1. Copiar `.env.example` a `.env` y completar únicamente los valores del entorno.
 2. Respaldar la base de datos.
-3. El administrador debe ejecutar **un solo script**: `migrations/006_dispensacion_integrada.sql`.
+3. Si la base ya tiene las migraciones anteriores, ejecutar `migrations/006_dispensacion_integrada.sql`. Si está desactualizada o no se conoce su versión, ejecutar `migrations/ACTUALIZAR_FARMACIA_COMPLETO.sql`.
 4. Iniciar la API:
 
 ```bash

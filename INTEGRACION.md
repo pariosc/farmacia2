@@ -125,14 +125,17 @@ costos ni precios internos.
 
 ## Base de datos
 
-Con respaldo previo, ejecutar el único script de esta entrega:
+Con respaldo previo, si no se conoce qué migraciones tiene la base, ejecutar el
+actualizador acumulativo:
 
 ```bash
-psql "$DATABASE_URL" -X -f migrations/006_dispensacion_integrada.sql
+psql "$DATABASE_URL" -X -f migrations/ACTUALIZAR_FARMACIA_COMPLETO.sql
 ```
 
-La migración agrega precios, versiones, reservas, estados de pago, subtotales
-y relación 1:1 con comprobantes.
+Si las migraciones 001–005 ya están confirmadas, basta ejecutar
+`migrations/006_dispensacion_integrada.sql`. El actualizador no ejecuta la 004,
+porque esa etapa elimina columnas históricas; la 006 es compatible con ambos
+escenarios. Todos los scripts se detienen ante errores y requieren respaldo.
 
 ## Anexo: endpoints para compartir con los compañeros
 
