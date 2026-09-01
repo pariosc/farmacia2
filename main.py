@@ -24,6 +24,23 @@ from routers import (
 
 app = FastAPI(title="API Módulo Farmacia - Hospital TODO SANO", lifespan=lifespan)
 
+# --- Seguridad (paquete del equipo de Seguridad) ---
+# Instrucción recibida: agregar esto justo después de crear `app`.
+# Con try/except para que la app siga arrancando aunque el paquete todavía no
+# esté instalado (útil para probar hoy sin bloquear nada). En cuanto instales
+# el paquete real, esto se activa solo sin tocar más código.
+#
+# Instalar cuando Seguridad confirme el nombre/URL real del paquete:
+#   uv add seguridad_hospital   (o el nombre/URL git que te den)
+try:
+    from seguridad_hospital import proteger_modulo
+    proteger_modulo(app, roles_permitidos=["FARMACEUTICO", "ADMINISTRADOR"])
+except ImportError:
+    print(
+        "[Seguridad] Paquete 'seguridad_hospital' no instalado todavía. "
+        "La app sigue sin protección global — instalar antes de producción."
+    )
+
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 templates = Jinja2Templates(directory=FRONTEND_DIR / "templates")

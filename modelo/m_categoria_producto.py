@@ -1,4 +1,4 @@
-from asyncpg import Connection
+from asyncpg import Connection, UniqueViolationError
 
 
 async def listar(conn: Connection):
@@ -19,22 +19,28 @@ async def obtener(conn: Connection, id_categoria: int):
 
 
 async def insertar(conn: Connection, nombre: str, descripcion: str | None, activo: bool):
-    fila = await conn.fetchrow(
-        "INSERT INTO tf_categorias_producto (nombre, descripcion, activo) "
-        "VALUES ($1, $2, $3) "
-        "RETURNING id_categoria, nombre, descripcion, activo",
-        nombre, descripcion, activo,
-    )
+    try:
+        fila = await conn.fetchrow(
+            "INSERT INTO tf_categorias_producto (nombre, descripcion, activo) "
+            "VALUES ($1, $2, $3) "
+            "RETURNING id_categoria, nombre, descripcion, activo",
+            nombre, descripcion, activo,
+        )
+    except UniqueViolationError as error:
+        raise ValueError(f"Ya existe una categoría con el nombre '{nombre}'") from error
     return dict(fila)
 
 
 async def actualizar(conn: Connection, id_categoria: int, nombre: str, descripcion: str | None, activo: bool):
-    fila = await conn.fetchrow(
-        "UPDATE tf_categorias_producto SET nombre = $2, descripcion = $3, activo = $4 "
-        "WHERE id_categoria = $1 "
-        "RETURNING id_categoria, nombre, descripcion, activo",
-        id_categoria, nombre, descripcion, activo,
-    )
+    try:
+        fila = await conn.fetchrow(
+            "UPDATE tf_categorias_producto SET nombre = $2, descripcion = $3, activo = $4 "
+            "WHERE id_categoria = $1 "
+            "RETURNING id_categoria, nombre, descripcion, activo",
+            id_categoria, nombre, descripcion, activo,
+        )
+    except UniqueViolationError as error:
+        raise ValueError(f"Ya existe una categoría con el nombre '{nombre}'") from error
     return dict(fila) if fila else None
 
 

@@ -23,12 +23,18 @@ async def obtener(id_categoria: int, conn: Connection = Depends(get_conn)):
 
 @router.post("/", status_code=201)
 async def crear(datos: CategoriaProducto, conn: Connection = Depends(get_conn)):
-    return await modelo.insertar(conn, datos.nombre, datos.descripcion, datos.activo)
+    try:
+        return await modelo.insertar(conn, datos.nombre, datos.descripcion, datos.activo)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
 
 
 @router.put("/{id_categoria}")
 async def actualizar(id_categoria: int, datos: CategoriaProducto, conn: Connection = Depends(get_conn)):
-    categoria = await modelo.actualizar(conn, id_categoria, datos.nombre, datos.descripcion, datos.activo)
+    try:
+        categoria = await modelo.actualizar(conn, id_categoria, datos.nombre, datos.descripcion, datos.activo)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
     return categoria

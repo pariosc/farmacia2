@@ -1,4 +1,4 @@
-from asyncpg import Connection
+from asyncpg import Connection, UniqueViolationError
 from entidades.farmacia_catalogo import Producto
 
 CAMPOS = (
@@ -64,33 +64,39 @@ async def obtener(conn: Connection, id_producto: int):
 
 async def insertar(conn: Connection, p: Producto):
     await _resolver_tipo(conn, p)
-    fila = await conn.fetchrow(
-        "INSERT INTO tf_productos "
-        "(id_categoria, codigo, nombre, id_tipo_producto, tipo_producto, principio_activo, "
-        " concentracion, presentacion, unidad_medida, stock_minimo, precio_venta, "
-        " requiere_receta, activo) "
-        "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) "
-        "RETURNING id_producto",
-        p.id_categoria, p.codigo, p.nombre, p.id_tipo_producto, p.tipo_producto, p.principio_activo,
-        p.concentracion, p.presentacion, p.unidad_medida, p.stock_minimo,
-        p.precio_venta, p.requiere_receta, p.activo,
-    )
+    try:
+        fila = await conn.fetchrow(
+            "INSERT INTO tf_productos "
+            "(id_categoria, codigo, nombre, id_tipo_producto, tipo_producto, principio_activo, "
+            " concentracion, presentacion, unidad_medida, stock_minimo, precio_venta, "
+            " requiere_receta, activo) "
+            "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) "
+            "RETURNING id_producto",
+            p.id_categoria, p.codigo, p.nombre, p.id_tipo_producto, p.tipo_producto, p.principio_activo,
+            p.concentracion, p.presentacion, p.unidad_medida, p.stock_minimo,
+            p.precio_venta, p.requiere_receta, p.activo,
+        )
+    except UniqueViolationError as error:
+        raise ValueError(f"Ya existe un producto con el código '{p.codigo}'") from error
     return await obtener(conn, fila["id_producto"])
 
 
 async def actualizar(conn: Connection, id_producto: int, p: Producto):
     await _resolver_tipo(conn, p)
-    fila = await conn.fetchrow(
-        "UPDATE tf_productos SET id_categoria=$2, codigo=$3, nombre=$4, "
-        "id_tipo_producto=COALESCE($5,id_tipo_producto), tipo_producto=$6, principio_activo=$7, concentracion=$8, "
-        "presentacion=$9, unidad_medida=$10, stock_minimo=$11, precio_venta=$12, "
-        "requiere_receta=$13, activo=$14 "
-        "WHERE id_producto = $1 "
-        "RETURNING id_producto",
-        id_producto, p.id_categoria, p.codigo, p.nombre, p.id_tipo_producto, p.tipo_producto,
-        p.principio_activo, p.concentracion, p.presentacion, p.unidad_medida,
-        p.stock_minimo, p.precio_venta, p.requiere_receta, p.activo,
-    )
+    try:
+        fila = await conn.fetchrow(
+            "UPDATE tf_productos SET id_categoria=$2, codigo=$3, nombre=$4, "
+            "id_tipo_producto=COALESCE($5,id_tipo_producto), tipo_producto=$6, principio_activo=$7, concentracion=$8, "
+            "presentacion=$9, unidad_medida=$10, stock_minimo=$11, precio_venta=$12, "
+            "requiere_receta=$13, activo=$14 "
+            "WHERE id_producto = $1 "
+            "RETURNING id_producto",
+            id_producto, p.id_categoria, p.codigo, p.nombre, p.id_tipo_producto, p.tipo_producto,
+            p.principio_activo, p.concentracion, p.presentacion, p.unidad_medida,
+            p.stock_minimo, p.precio_venta, p.requiere_receta, p.activo,
+        )
+    except UniqueViolationError as error:
+        raise ValueError(f"Ya existe un producto con el código '{p.codigo}'") from error
     return await obtener(conn, fila["id_producto"]) if fila else None
 
 
