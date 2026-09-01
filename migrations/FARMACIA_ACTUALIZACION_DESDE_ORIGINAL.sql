@@ -526,6 +526,7 @@ ALTER TABLE tf_dispensaciones
         'PENDIENTE',              -- legado; no crear nuevas filas con este estado
         'PENDIENTE_PAGO',
         'PAGADA',
+        'PARCIAL',                 -- legado de la BD original
         'ENTREGADA',
         'VENCIDA',
         'ANULACION_SOLICITADA',
