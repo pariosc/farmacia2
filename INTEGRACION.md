@@ -129,7 +129,7 @@ Con respaldo previo, si no se conoce qué migraciones tiene la base, ejecutar el
 actualizador acumulativo:
 
 ```bash
-psql "$DATABASE_URL" -X -f migrations/ACTUALIZAR_FARMACIA_COMPLETO.sql
+psql "$DATABASE_URL" -X -f migrations/FARMACIA_ACTUALIZACION_DESDE_ORIGINAL.sql
 ```
 
 Si las migraciones 001–005 ya están confirmadas, basta ejecutar
