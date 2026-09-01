@@ -7,7 +7,8 @@ from datetime import date
 class DetalleConsumoIn(BaseModel):
     id_detalle_solicitud_consumo: Optional[int] = None
     id_detalle_prescripcion: Optional[int] = None
-    id_lote: int
+    id_producto: Optional[int] = Field(default=None, gt=0)
+    id_lote: Optional[int] = Field(default=None, gt=0)
     cantidad_entregada: Decimal = Field(gt=0)
 
     @model_validator(mode="after")
@@ -17,6 +18,8 @@ class DetalleConsumoIn(BaseModel):
                 "Cada detalle debe indicar id_detalle_solicitud_consumo o "
                 "id_detalle_prescripcion (al menos uno)."
             )
+        if self.id_producto is None and self.id_lote is None:
+            raise ValueError("Cada detalle debe indicar id_producto o id_lote")
         return self
 
 

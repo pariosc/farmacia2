@@ -369,4 +369,29 @@ COMMENT ON TABLE tf_dispensaciones IS
 COMMENT ON TABLE tf_reservas_dispensacion IS
     'Stock comprometido por lote sin modificar stock_actual hasta la entrega.';
 
+-- Consumo interno: Internación puede enviar producto sin conocer el lote.
+-- Farmacia asigna el lote disponible; se conservan lotes históricos.
+ALTER TABLE tf_detalles_consumo
+    ADD COLUMN IF NOT EXISTS id_producto integer;
+ALTER TABLE tf_detalles_consumo
+    ALTER COLUMN id_lote DROP NOT NULL;
+UPDATE tf_detalles_consumo d
+SET id_producto = l.id_producto
+FROM tf_lotes l
+WHERE d.id_lote = l.id_lote AND d.id_producto IS NULL;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'tf_detalles_consumo'::regclass
+          AND conname = 'ck_tf_detalles_consumo_producto_o_lote'
+    ) THEN
+        ALTER TABLE tf_detalles_consumo
+            ADD CONSTRAINT ck_tf_detalles_consumo_producto_o_lote
+            CHECK (id_producto IS NOT NULL OR id_lote IS NOT NULL) NOT VALID;
+    END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS idx_tf_detalles_consumo_producto
+    ON tf_detalles_consumo(id_producto);
+
 COMMIT;

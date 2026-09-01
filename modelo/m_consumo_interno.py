@@ -5,7 +5,7 @@ from modelo import m_lote
 CAMPOS = ("id_consumo, id_solicitud_insumo, id_prescripcion, id_usuario, "
           "fecha_consumo, estado, observacion")
 CAMPOS_DET = ("id_detalle_consumo, id_consumo, id_detalle_solicitud_consumo, "
-              "id_detalle_prescripcion, id_lote, cantidad_entregada")
+              "id_detalle_prescripcion, id_producto, id_lote, cantidad_entregada")
 
 
 async def listar(conn: Connection, limit: int = 200, offset: int = 0):
@@ -45,13 +45,26 @@ async def registrar(conn: Connection, datos: ConsumoInternoIn):
         detalles_resultado = []
 
         for det in datos.detalles:
+            id_lote = det.id_lote
+            if id_lote is None:
+                lote = await conn.fetchrow(
+                    """SELECT l.id_lote FROM tf_lotes l
+                       WHERE l.id_producto = $1 AND l.stock_actual > 0
+                         AND l.estado NOT IN ('VENCIDO', 'AGOTADO')
+                         AND (l.fecha_vencimiento IS NULL OR l.fecha_vencimiento >= CURRENT_DATE)
+                       ORDER BY l.fecha_vencimiento NULLS LAST, l.id_lote
+                       LIMIT 1""", det.id_producto,
+                )
+                if lote is None:
+                    raise ValueError(f"No hay lote disponible para el producto #{det.id_producto}")
+                id_lote = lote["id_lote"]
             detalle = await conn.fetchrow(
                 "INSERT INTO tf_detalles_consumo "
-                "(id_consumo, id_detalle_solicitud_consumo, id_detalle_prescripcion, id_lote, cantidad_entregada) "
-                "VALUES ($1, $2, $3, $4, $5) "
+                "(id_consumo, id_detalle_solicitud_consumo, id_detalle_prescripcion, id_producto, id_lote, cantidad_entregada) "
+                "VALUES ($1, $2, $3, $4, $5, $6) "
                 f"RETURNING {CAMPOS_DET}",
                 id_consumo, det.id_detalle_solicitud_consumo, det.id_detalle_prescripcion,
-                det.id_lote, det.cantidad_entregada,
+                det.id_producto, id_lote, det.cantidad_entregada,
             )
 
             detalles_resultado.append(dict(detalle))
