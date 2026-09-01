@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Kardex de inventario{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">Trazabilidad</p><h1>Kardex de inventario</h1><p>Consulta la trazabilidad de entradas, salidas y ajustes de medicamentos e insumos.</p></div>
+</div>
+
+<section class="inventory-summary" aria-label="Resumen de movimientos">
+  <article class="card app-card summary-card"><span class="summary-indicator info">⇄</span><div><strong id="totalMovimientos">—</strong><span>Movimientos totales</span></div></article>
+  <article class="card app-card summary-card"><span class="summary-indicator success">+</span><div><strong id="totalEntradas">—</strong><span>Entradas</span></div></article>
+  <article class="card app-card summary-card"><span class="summary-indicator danger">−</span><div><strong id="totalSalidas">—</strong><span>Salidas</span></div></article>
+  <article class="card app-card summary-card"><span class="summary-indicator info">±</span><div><strong id="totalAjustes">—</strong><span>Ajustes</span></div></article>
+</section>
+
+<section class="card app-card filters-card" aria-label="Filtros del Kardex">
+  <div class="row g-3">
+    <div class="col-12 col-lg-4"><label class="form-label" for="buscarMovimiento">Buscar producto</label><div class="input-group"><span class="input-group-text">⌕</span><input id="buscarMovimiento" class="form-control" type="search" placeholder="Código o nombre del producto"></div></div>
+    <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="filtroTipoMovimiento">Tipo</label><select id="filtroTipoMovimiento" class="form-select"><option value="">Todos</option><option value="ENTRADA">Entrada</option><option value="SALIDA">Salida</option><option value="AJUSTE">Ajuste</option></select></div>
+    <div class="col-6 col-md-4 col-lg-3"><label class="form-label" for="filtroLoteMovimiento">Lote</label><select id="filtroLoteMovimiento" class="form-select"><option value="">Todos los lotes</option></select></div>
+    <div class="col-6 col-md-4 col-lg-3"><label class="form-label" for="filtroOrigenMovimiento">Origen</label><select id="filtroOrigenMovimiento" class="form-select"><option value="">Todos</option><option value="COMPRA">Compra</option><option value="DISPENSACION">Dispensación</option><option value="CONSUMO">Consumo interno</option><option value="AJUSTE">Ajuste manual</option><option value="OTRO">Sin referencia</option></select></div>
+    <div class="col-6 col-md-4 col-lg-3"><label class="form-label" for="movimientoDesde">Desde</label><input id="movimientoDesde" class="form-control" type="date"></div>
+    <div class="col-6 col-md-4 col-lg-3"><label class="form-label" for="movimientoHasta">Hasta</label><input id="movimientoHasta" class="form-control" type="date"></div>
+    <div class="col-12 col-md-4 col-lg-3 d-flex align-items-end"><button class="btn btn-outline-secondary w-100" id="btnLimpiarKardex" type="button">Limpiar filtros</button></div>
+  </div>
+</section>
+
+<section class="card app-card table-card">
+  <div class="card-toolbar"><h2>Movimientos registrados</h2><p id="contadorMovimientos" aria-live="polite">Consultando movimientos…</p></div>
+  <div id="kardexCarga" class="state-panel"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Cargando trazabilidad de inventario…</p></div>
+  <div id="kardexError" class="state-panel d-none"><div class="state-icon error">!</div><h3>No se pudo cargar el Kardex</h3><p id="kardexErrorMensaje"></p><button class="btn btn-outline-primary" id="btnReintentarKardex" type="button">Reintentar</button></div>
+  <div id="kardexResultados" class="d-none">
+    <div id="vacioKardex" class="state-panel d-none"><div class="state-icon">⇄</div><h3 id="vacioKardexTitulo">No se encontraron movimientos de inventario</h3><p id="vacioKardexTexto">Todavía no existen movimientos registrados.</p></div>
+    <div id="tablaKardexContenedor" class="table-responsive"><table class="table app-table kardex-table align-middle mb-0"><thead><tr><th>Fecha</th><th>Producto</th><th>Lote</th><th>Tipo</th><th>Cantidad</th><th class="kardex-secondary">Origen</th><th class="kardex-secondary">Usuario</th><th class="text-end">Acción</th></tr></thead><tbody id="tablaKardex"></tbody></table></div>
+  </div>
+</section>
+
+<div class="modal fade" id="movimientoModal" tabindex="-1" aria-labelledby="movimientoModalTitle" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><div><p class="eyebrow mb-1">Trazabilidad de inventario</p><h2 class="modal-title fs-5" id="movimientoModalTitle">Detalle del movimiento</h2></div><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+  <div class="modal-body">
+    <div id="movimientoModalError" class="alert alert-danger d-none" role="alert"></div>
+    <div id="movimientoModalCarga" class="state-panel"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Consultando movimiento y lote…</p></div>
+    <div id="movimientoModalContenido" class="d-none">
+      <div id="resumenMovimiento" class="purchase-summary"></div>
+      <div class="inventory-history-heading"><div><h3>Historial del lote</h3><p id="descripcionHistorialLote">Movimientos asociados al lote seleccionado.</p></div></div>
+      <div id="historialLoteVacio" class="purchase-empty d-none">Este lote no contiene movimientos.</div>
+      <div id="historialLoteTabla" class="table-responsive"><table class="table app-table align-middle mb-0"><thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Origen</th></tr></thead><tbody id="tablaHistorialLote"></tbody></table></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cerrar</button></div>
+</div></div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/js/kardex.js') }}"></script>{% endblock %}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión | TODO SANO</title>
+  <link rel="icon" href="{{ url_for('static', path='/img/favicon.svg') }}" type="image/svg+xml">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/app.css') }}">
+</head>
+<body class="login-page">
+  <main class="login-shell">
+    <section class="login-card" aria-labelledby="loginTitle">
+      <div class="login-brand"><span class="brand-mark" aria-hidden="true">+</span><div><strong>Hospital TODO SANO</strong><small>Segundo nivel de atención</small></div></div>
+      <div class="login-heading"><p class="eyebrow">Farmacia e Inventario</p><h1 id="loginTitle">Iniciar sesión</h1><p>Ingresa tus credenciales institucionales para continuar.</p></div>
+      <div class="alert alert-warning login-notice" role="status"><strong>Integración pendiente.</strong> El backend todavía no dispone de autenticación. Tus credenciales no serán enviadas ni almacenadas.</div>
+      <form id="loginForm" novalidate>
+        <div class="mb-3"><label for="usuario" class="form-label">Usuario o correo</label><input id="usuario" class="form-control" type="text" autocomplete="username" placeholder="usuario@todosano.bo" required></div>
+        <div class="mb-3"><label for="password" class="form-label">Contraseña</label><input id="password" class="form-control" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña" required></div>
+        <button class="btn btn-primary w-100" type="submit" disabled>Iniciar sesión</button>
+      </form>
+      <a class="btn btn-outline-secondary w-100 mt-3" href="/productos">Vista previa de Productos</a>
+      <p class="login-help">La vista previa solo facilita la revisión visual y no representa una sesión autenticada.</p>
+    </section>
+  </main>
+</body>
+</html>

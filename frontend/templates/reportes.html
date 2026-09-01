@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Reportes{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">Consulta</p><h1>Reportes</h1><p>Resúmenes de compras, movimientos, stock bajo y vencimientos de Farmacia.</p></div>
+  <div class="page-actions"><button class="btn btn-primary" id="btnActualizarReportes" type="button">↻ Actualizar</button></div>
+</div>
+
+<section class="card app-card filters-card" aria-label="Parámetros de los reportes">
+  <div class="row g-3">
+    <div class="col-6 col-md-4 col-xl-3"><label class="form-label" for="reporteDesde">Desde</label><input id="reporteDesde" class="form-control" type="date"></div>
+    <div class="col-6 col-md-4 col-xl-3"><label class="form-label" for="reporteHasta">Hasta</label><input id="reporteHasta" class="form-control" type="date"></div>
+    <div class="col-6 col-md-4 col-xl-2"><label class="form-label" for="reporteDias">Vencer en (días)</label><input id="reporteDias" class="form-control" type="number" min="0" max="365" value="30"></div>
+  </div>
+  <p class="report-hint">«Desde» y «Hasta» aplican a Compras por proveedor y Entradas/salidas. «Vencer en» aplica a Próximos vencimientos.</p>
+</section>
+
+<div class="accordion report-accordion" id="reportesAccordion">
+  <div class="accordion-item" data-reporte="compras">
+    <h2 class="accordion-header d-flex align-items-center">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelCompras" aria-expanded="true" aria-controls="panelCompras">
+        <span class="report-acc-head"><span>Compras por proveedor</span><span class="report-acc-meta" data-role="contador">Cargando…</span></span>
+      </button>
+      <div class="report-dl">
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-reporte-btn="compras"><svg class="dl-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.5.5 0 0 1 .5.5v6.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 8.293V1.5A.5.5 0 0 1 8 1z" fill="currentColor"/><path d="M2 10.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 13 14.5H3a1.5 1.5 0 0 1-1.5-1.5v-2a.5.5 0 0 1 .5-.5z" fill="currentColor"/></svg> Descargar</button>
+        <ul class="dropdown-menu dropdown-menu-end" data-reporte-menu="compras">
+          <li class="dropdown-header">PDF</li>
+          <li><button class="dropdown-item" type="button" data-dl="compras" data-formato="pdf" data-todo="1">Descargar todo</button></li>
+          <li><button class="dropdown-item" type="button" data-dl="compras" data-formato="pdf">Según filtros</button></li>
+          <li class="dropdown-header">Excel</li>
+          <li><button class="dropdown-item" type="button" data-dl="compras" data-formato="xlsx" data-todo="1">Descargar todo</button></li>
+          <li><button class="dropdown-item" type="button" data-dl="compras" data-formato="xlsx">Según filtros</button></li>
+        </ul>
+      </div>
+    </h2>
+    <div id="panelCompras" class="accordion-collapse collapse show">
+      <div class="accordion-body">
+        <div class="state-panel" data-role="carga"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Generando reporte…</p></div>
+        <div class="state-panel d-none" data-role="error"><div class="state-icon error">!</div><h3>No se pudo generar el reporte</h3><p data-role="error-msg"></p></div>
+        <div class="state-panel d-none" data-role="vacio"><div class="state-icon">▧</div><h3>Sin datos para los parámetros indicados</h3></div>
+        <div class="table-responsive d-none" data-role="tabla">
+          <table class="table app-table align-middle mb-0"><thead><tr><th>Proveedor</th><th class="text-end">N.º compras</th><th class="text-end">Total comprado</th></tr></thead><tbody data-role="cuerpo"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item" data-reporte="movimientos">
+    <h2 class="accordion-header d-flex align-items-center">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelMovimientos" aria-expanded="false" aria-controls="panelMovimientos">
+        <span class="report-acc-head"><span>Entradas y salidas por periodo</span><span class="report-acc-meta" data-role="contador">Cargando…</span></span>
+      </button>
+      <div class="report-dl">
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-reporte-btn="movimientos"><svg class="dl-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.5.5 0 0 1 .5.5v6.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 8.293V1.5A.5.5 0 0 1 8 1z" fill="currentColor"/><path d="M2 10.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 13 14.5H3a1.5 1.5 0 0 1-1.5-1.5v-2a.5.5 0 0 1 .5-.5z" fill="currentColor"/></svg> Descargar</button>
+        <ul class="dropdown-menu dropdown-menu-end" data-reporte-menu="movimientos">
+          <li class="dropdown-header">PDF</li>
+          <li><button class="dropdown-item" type="button" data-dl="movimientos" data-formato="pdf" data-todo="1">Descargar todo</button></li>
+          <li><button class="dropdown-item" type="button" data-dl="movimientos" data-formato="pdf">Según filtros</button></li>
+          <li class="dropdown-header">Excel</li>
+          <li><button class="dropdown-item" type="button" data-dl="movimientos" data-formato="xlsx" data-todo="1">Descargar todo</button></li>
+          <li><button class="dropdown-item" type="button" data-dl="movimientos" data-formato="xlsx">Según filtros</button></li>
+        </ul>
+      </div>
+    </h2>
+    <div id="panelMovimientos" class="accordion-collapse collapse">
+      <div class="accordion-body">
+        <div class="state-panel" data-role="carga"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Generando reporte…</p></div>
+        <div class="state-panel d-none" data-role="error"><div class="state-icon error">!</div><h3>No se pudo generar el reporte</h3><p data-role="error-msg"></p></div>
+        <div class="state-panel d-none" data-role="vacio"><div class="state-icon">▧</div><h3>Sin movimientos para los parámetros indicados</h3></div>
+        <div class="table-responsive d-none" data-role="tabla">
+          <table class="table app-table align-middle mb-0"><thead><tr><th>Producto</th><th class="text-end">Entradas</th><th class="text-end">Salidas</th><th class="text-end">Ajustes</th><th class="text-end">N.º mov.</th><th class="report-col-bar">Entrada / salida</th></tr></thead><tbody data-role="cuerpo"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item" data-reporte="stock">
+    <h2 class="accordion-header d-flex align-items-center">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelStock" aria-expanded="false" aria-controls="panelStock">
+        <span class="report-acc-head"><span>Stock bajo agregado por producto</span><span class="report-acc-meta" data-role="contador">Cargando…</span></span>
+      </button>
+      <div class="report-dl">
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-reporte-btn="stock"><svg class="dl-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.5.5 0 0 1 .5.5v6.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 8.293V1.5A.5.5 0 0 1 8 1z" fill="currentColor"/><path d="M2 10.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 13 14.5H3a1.5 1.5 0 0 1-1.5-1.5v-2a.5.5 0 0 1 .5-.5z" fill="currentColor"/></svg> Descargar</button>
+        <ul class="dropdown-menu dropdown-menu-end" data-reporte-menu="stock">
+          <li class="dropdown-header">PDF</li>
+          <li><button class="dropdown-item" type="button" data-dl="stock" data-formato="pdf">Descargar PDF</button></li>
+          <li class="dropdown-header">Excel</li>
+          <li><button class="dropdown-item" type="button" data-dl="stock" data-formato="xlsx">Descargar Excel</button></li>
+        </ul>
+      </div>
+    </h2>
+    <div id="panelStock" class="accordion-collapse collapse">
+      <div class="accordion-body">
+        <div class="state-panel" data-role="carga"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Generando reporte…</p></div>
+        <div class="state-panel d-none" data-role="error"><div class="state-icon error">!</div><h3>No se pudo generar el reporte</h3><p data-role="error-msg"></p></div>
+        <div class="state-panel d-none" data-role="vacio"><div class="state-icon">▧</div><h3>Ningún producto por debajo del mínimo</h3></div>
+        <div class="table-responsive d-none" data-role="tabla">
+          <table class="table app-table align-middle mb-0"><thead><tr><th>Producto</th><th class="text-end">Stock disponible</th><th class="text-end">Mínimo</th><th class="report-col-bar">Cobertura del mínimo</th><th>Estado</th></tr></thead><tbody data-role="cuerpo"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item" data-reporte="vencimientos">
+    <h2 class="accordion-header d-flex align-items-center">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelVencimientos" aria-expanded="false" aria-controls="panelVencimientos">
+        <span class="report-acc-head"><span>Próximos vencimientos y lotes vencidos</span><span class="report-acc-meta" data-role="contador">Cargando…</span></span>
+      </button>
+      <div class="report-dl">
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-reporte-btn="vencimientos"><svg class="dl-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.5.5 0 0 1 .5.5v6.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 8.293V1.5A.5.5 0 0 1 8 1z" fill="currentColor"/><path d="M2 10.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 13 14.5H3a1.5 1.5 0 0 1-1.5-1.5v-2a.5.5 0 0 1 .5-.5z" fill="currentColor"/></svg> Descargar</button>
+        <ul class="dropdown-menu dropdown-menu-end" data-reporte-menu="vencimientos">
+          <li class="dropdown-header">PDF</li>
+          <li><button class="dropdown-item" type="button" data-dl="vencimientos" data-formato="pdf">Descargar PDF</button></li>
+          <li class="dropdown-header">Excel</li>
+          <li><button class="dropdown-item" type="button" data-dl="vencimientos" data-formato="xlsx">Descargar Excel</button></li>
+        </ul>
+      </div>
+    </h2>
+    <div id="panelVencimientos" class="accordion-collapse collapse">
+      <div class="accordion-body">
+        <div class="state-panel" data-role="carga"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Generando reporte…</p></div>
+        <div class="state-panel d-none" data-role="error"><div class="state-icon error">!</div><h3>No se pudo generar el reporte</h3><p data-role="error-msg"></p></div>
+        <div class="state-panel d-none" data-role="vacio"><div class="state-icon">▧</div><h3>Sin lotes por vencer en la ventana indicada</h3></div>
+        <div class="table-responsive d-none" data-role="tabla">
+          <table class="table app-table align-middle mb-0"><thead><tr><th>Producto</th><th>Lote</th><th>Vencimiento</th><th class="text-end">Stock</th><th class="text-end">Días</th><th>Estado</th></tr></thead><tbody data-role="cuerpo"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/js/reportes.js') }}?v=20260828"></script>{% endblock %}

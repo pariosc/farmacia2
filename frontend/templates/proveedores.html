@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Proveedores{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">Abastecimiento</p><h1>Proveedores</h1><p>Administra los proveedores de medicamentos e insumos de Farmacia.</p></div>
+  <div class="page-actions"><button class="btn btn-primary" id="btnNuevoProveedor" type="button">＋ Nuevo proveedor</button></div>
+</div>
+
+<section class="card app-card filters-card" aria-label="Filtros de proveedores">
+  <div class="row g-3">
+    <div class="col-12 col-lg-8"><label class="form-label" for="buscarProveedor">Buscar</label><div class="input-group"><span class="input-group-text">⌕</span><input id="buscarProveedor" class="form-control" type="search" placeholder="Razón social o NIT"></div></div>
+    <div class="col-12 col-lg-4"><label class="form-label" for="filtroEstado">Estado</label><select id="filtroEstado" class="form-select"><option value="">Todos</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option></select></div>
+  </div>
+</section>
+
+<section class="card app-card table-card">
+  <div class="card-toolbar"><div><h2>Directorio de proveedores</h2><p id="contadorProveedores">Cargando proveedores…</p></div></div>
+  <div id="estadoCargaProveedor" class="state-panel"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Consultando proveedores…</p></div>
+  <div id="estadoErrorProveedor" class="state-panel d-none"><div class="state-icon error">!</div><h3>No se pudieron cargar los proveedores</h3><p id="mensajeErrorProveedor"></p><button class="btn btn-outline-primary" id="btnReintentarProveedor">Reintentar</button></div>
+  <div id="estadoVacioProveedor" class="state-panel d-none"><div class="state-icon">♙</div><h3>No se encontraron proveedores</h3><p>Ajusta la búsqueda o registra el primer proveedor.</p></div>
+  <div id="contenedorTablaProveedores" class="table-responsive d-none">
+    <table class="table app-table supplier-table align-middle mb-0"><thead><tr><th>Proveedor</th><th class="d-none d-sm-table-cell">NIT</th><th class="d-none d-lg-table-cell">Teléfono</th><th class="d-none d-md-table-cell">Correo</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody id="tablaProveedores"></tbody></table>
+  </div>
+</section>
+
+<div class="modal fade" id="proveedorModal" tabindex="-1" aria-labelledby="proveedorModalTitle" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content"><form id="proveedorForm" novalidate>
+  <div class="modal-header"><div><p class="eyebrow mb-1">Directorio</p><h2 class="modal-title fs-5" id="proveedorModalTitle">Nuevo proveedor</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+  <div class="modal-body"><div id="proveedorFormError" class="alert alert-danger d-none" role="alert"></div><input type="hidden" id="idProveedor">
+    <div class="row g-3">
+      <div class="col-md-8"><label for="razonSocial" class="form-label">Razón social *</label><input id="razonSocial" class="form-control" maxlength="150" required></div>
+      <div class="col-md-4"><label for="nit" class="form-label">NIT</label><input id="nit" class="form-control" maxlength="30" inputmode="numeric"></div>
+      <div class="col-md-6"><label for="telefono" class="form-label">Teléfono</label><input id="telefono" class="form-control" type="tel" maxlength="30"></div>
+      <div class="col-md-6"><label for="correo" class="form-label">Correo</label><input id="correo" class="form-control" type="email" maxlength="100" placeholder="contacto@proveedor.com"></div>
+      <div class="col-12"><label for="direccion" class="form-label">Dirección</label><textarea id="direccion" class="form-control" maxlength="200" rows="3"></textarea></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cerrar</button><button class="btn btn-primary" id="btnGuardarProveedor" type="submit">Guardar proveedor</button></div>
+</form></div></div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/js/proveedores.js') }}"></script>{% endblock %}

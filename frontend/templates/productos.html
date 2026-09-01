@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Productos{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">Catálogo de farmacia</p><h1>Productos</h1><p>Administra medicamentos e insumos disponibles en el catálogo.</p></div>
+  <div class="page-actions"><button class="btn btn-outline-secondary" id="btnCategorias" type="button">Gestionar categorías</button><button class="btn btn-outline-secondary" id="btnTipos" type="button">Gestionar tipos</button><button class="btn btn-primary" id="btnNuevo" type="button">＋ Nuevo producto</button></div>
+</div>
+
+<section class="card app-card filters-card" aria-label="Filtros de productos">
+  <div class="row g-3">
+    <div class="col-12 col-lg-6"><label class="form-label" for="buscarProducto">Buscar</label><div class="input-group"><span class="input-group-text">⌕</span><input id="buscarProducto" class="form-control" type="search" placeholder="Código, nombre o principio activo"></div></div>
+    <div class="col-6 col-lg-3"><label class="form-label" for="filtroCategoria">Categoría</label><select id="filtroCategoria" class="form-select"><option value="">Todas</option></select></div>
+    <div class="col-6 col-lg-3"><label class="form-label" for="filtroTipo">Tipo</label><select id="filtroTipo" class="form-select"><option value="">Todos</option></select></div>
+  </div>
+</section>
+
+<section class="card app-card table-card">
+  <div class="card-toolbar"><div><h2>Catálogo</h2><p id="contadorProductos">Cargando productos…</p></div></div>
+  <div id="estadoCarga" class="state-panel"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando</span></div><p>Consultando el catálogo…</p></div>
+  <div id="estadoError" class="state-panel d-none"><div class="state-icon error">!</div><h3>No se pudo cargar el catálogo</h3><p id="mensajeError"></p><button class="btn btn-outline-primary" id="btnReintentar">Reintentar</button></div>
+  <div id="estadoVacio" class="state-panel d-none"><div class="state-icon">▦</div><h3>No hay productos para mostrar</h3><p>Ajusta los filtros o registra el primer producto del catálogo.</p></div>
+  <div id="contenedorTabla" class="table-responsive d-none">
+    <table class="table app-table align-middle mb-0"><thead><tr><th>Código</th><th>Producto</th><th>Categoría</th><th>Tipo</th><th>Unidad</th><th>Precio venta</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody id="tablaProductos"></tbody></table>
+  </div>
+</section>
+
+<div class="modal fade" id="productoModal" tabindex="-1" aria-labelledby="productoModalTitle" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content"><form id="productoForm" novalidate>
+  <div class="modal-header"><div><p class="eyebrow mb-1">Catálogo</p><h2 class="modal-title fs-5" id="productoModalTitle">Nuevo producto</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+  <div class="modal-body"><div id="productoFormError" class="alert alert-danger d-none" role="alert"></div><input type="hidden" id="idProducto">
+    <div class="row g-3"><div class="col-md-4"><label for="codigo" class="form-label">Código *</label><input id="codigo" class="form-control" maxlength="30" required></div><div class="col-md-8"><label for="nombre" class="form-label">Nombre *</label><input id="nombre" class="form-control" maxlength="150" required></div>
+    <div class="col-md-6"><label for="idCategoria" class="form-label">Categoría *</label><select id="idCategoria" class="form-select" required></select></div><div class="col-md-6"><label for="tipoProducto" class="form-label">Tipo *</label><select id="tipoProducto" class="form-select" required><option value="">Selecciona</option></select></div>
+    <div class="col-md-6 medicamento-field"><label for="principioActivo" class="form-label">Principio activo</label><input id="principioActivo" class="form-control" maxlength="150"></div><div class="col-md-3 medicamento-field"><label for="concentracion" class="form-label">Concentración</label><input id="concentracion" class="form-control" maxlength="50"></div><div class="col-md-3"><label for="presentacion" class="form-label">Presentación</label><input id="presentacion" class="form-control" maxlength="100"></div>
+    <div class="col-md-4"><label for="unidadMedida" class="form-label">Unidad de medida *</label><input id="unidadMedida" class="form-control" maxlength="30" placeholder="Unidad, caja, frasco…" required></div><div class="col-md-4"><label for="stockMinimo" class="form-label">Stock mínimo *</label><input id="stockMinimo" class="form-control" type="number" min="0" step="0.01" value="0" required></div><div class="col-md-4"><label for="precioVenta" class="form-label">Precio de venta (Bs) *</label><input id="precioVenta" class="form-control" type="number" min="0" step="0.01" value="0" required><div class="form-text">Debe ser mayor a 0 para generar notas.</div></div></div>
+  </div><div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary" id="btnGuardarProducto" type="submit">Guardar producto</button></div>
+</form></div></div></div>
+
+<div class="modal fade" id="categoriasModal" tabindex="-1" aria-labelledby="categoriasModalTitle" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><div><p class="eyebrow mb-1">Configuración</p><h2 class="modal-title fs-5" id="categoriasModalTitle">Categorías de producto</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+  <div class="modal-body"><form id="categoriaForm" class="category-form" novalidate><input type="hidden" id="idCategoriaEditar"><div><label for="categoriaNombre" class="form-label">Nombre *</label><input id="categoriaNombre" class="form-control" maxlength="100" required></div><div><label for="categoriaDescripcion" class="form-label">Descripción</label><input id="categoriaDescripcion" class="form-control" maxlength="255"></div><button id="btnGuardarCategoria" class="btn btn-sanitary" type="submit">Agregar</button><button id="btnCancelarCategoria" class="btn btn-outline-secondary d-none" type="button">Cancelar</button></form><div id="categoriaError" class="alert alert-danger d-none mt-3"></div><div id="listaCategorias" class="category-list mt-4"></div></div>
+</div></div></div>
+
+<div class="modal fade" id="tiposModal" tabindex="-1" aria-labelledby="tiposModalTitle" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><div><p class="eyebrow mb-1">Configuración</p><h2 class="modal-title fs-5" id="tiposModalTitle">Tipos de producto</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+  <div class="modal-body"><form id="tipoForm" class="category-form" novalidate><input type="hidden" id="idTipoEditar"><div><label for="tipoCodigo" class="form-label">Código *</label><input id="tipoCodigo" class="form-control" maxlength="30" required></div><div><label for="tipoNombre" class="form-label">Nombre *</label><input id="tipoNombre" class="form-control" maxlength="100" required></div><div><label for="tipoDescripcion" class="form-label">Descripción</label><input id="tipoDescripcion" class="form-control" maxlength="255"></div><button id="btnGuardarTipo" class="btn btn-sanitary" type="submit">Agregar</button><button id="btnCancelarTipo" class="btn btn-outline-secondary d-none" type="button">Cancelar</button></form><div id="tipoError" class="alert alert-danger d-none mt-3"></div><div id="listaTipos" class="category-list mt-4"></div></div>
+</div></div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='/js/productos.js') }}"></script>{% endblock %}

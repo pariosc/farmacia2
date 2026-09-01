@@ -1,0 +1,19 @@
+# PostgreSQL para el entorno de desarrollo
+# Uso: docker compose up -d
+# Requiere un archivo .env (ver .env.example) con DB_USER, DB_PASS y DB_NAME
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: tecnologia_web_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
