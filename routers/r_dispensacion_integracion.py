@@ -15,6 +15,12 @@ router = APIRouter(
 )
 
 
+@router.get("/cobros/pendientes")
+async def listar_pendientes_cobro(conn: Connection = Depends(get_conn)):
+    """Permite a Cobros obtener todas las proformas vigentes."""
+    return {"proformas": await modelo.listar_para_cobro(conn)}
+
+
 @router.get("/{id_dispensacion}/cobro")
 async def consultar_para_cobro(
     id_dispensacion: int, conn: Connection = Depends(get_conn)

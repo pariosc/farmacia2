@@ -399,6 +399,22 @@ async def obtener_para_cobro(conn: Connection, id_dispensacion: int):
     return resultado
 
 
+async def listar_para_cobro(conn: Connection):
+    """Lista las proformas vigentes que Cobros puede cobrar."""
+    await expirar_reservas(conn)
+    filas = await conn.fetch(
+        "SELECT id_dispensacion FROM tf_dispensaciones "
+        "WHERE estado = 'PENDIENTE_PAGO' AND reserva_hasta > CURRENT_TIMESTAMP "
+        "AND id_factura IS NULL ORDER BY id_dispensacion"
+    )
+    resultados = []
+    for fila in filas:
+        proforma = await obtener_para_cobro(conn, fila["id_dispensacion"])
+        if proforma:
+            resultados.append(proforma)
+    return resultados
+
+
 async def registrar_pago(conn: Connection, id_dispensacion: int, pago: PagoDispensacionIn):
     resultado_idempotente = False
     async with conn.transaction():
