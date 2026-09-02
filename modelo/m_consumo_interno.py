@@ -53,6 +53,60 @@ async def estado_por_solicitud(conn: Connection, id_solicitud: int):
     return resultado
 
 
+async def estado_por_consumo(conn: Connection, id_consumo: int):
+    """Devuelve el estado usando el identificador interno de Farmacia."""
+    cabecera = await conn.fetchrow(
+        "SELECT id_consumo, id_solicitud_insumo, id_prescripcion, estado, "
+        "fecha_consumo, observacion FROM tf_consumos_internos "
+        "WHERE id_consumo = $1",
+        id_consumo,
+    )
+    if not cabecera:
+        return None
+    detalles = await conn.fetch(
+        "SELECT id_detalle_consumo, id_producto, id_lote, cantidad_entregada "
+        "FROM tf_detalles_consumo WHERE id_consumo = $1 ORDER BY id_detalle_consumo",
+        id_consumo,
+    )
+    resultado = dict(cabecera)
+    resultado["entregado"] = resultado["estado"] == "REGISTRADO"
+    resultado["detalles"] = [dict(detalle) for detalle in detalles]
+    return resultado
+
+
+async def estado_por_prescripcion(conn: Connection, id_prescripcion: int):
+    """Consulta todos los consumos asociados a una prescripción clínica."""
+    filas = await conn.fetch(
+        "SELECT id_consumo, id_solicitud_insumo, id_prescripcion, estado, "
+        "fecha_consumo, observacion FROM tf_consumos_internos "
+        "WHERE id_prescripcion = $1 ORDER BY id_consumo",
+        id_prescripcion,
+    )
+    if not filas:
+        return None
+
+    consumos = []
+    for fila in filas:
+        detalles = await conn.fetch(
+            "SELECT id_detalle_consumo, id_producto, id_lote, cantidad_entregada "
+            "FROM tf_detalles_consumo WHERE id_consumo = $1 "
+            "ORDER BY id_detalle_consumo",
+            fila["id_consumo"],
+        )
+        consumo = dict(fila)
+        consumo["entregado"] = consumo["estado"] == "REGISTRADO"
+        consumo["detalles"] = [dict(detalle) for detalle in detalles]
+        consumos.append(consumo)
+
+    ultimo = consumos[-1]
+    return {
+        "id_prescripcion": id_prescripcion,
+        "estado": ultimo["estado"],
+        "entregado": all(consumo["entregado"] for consumo in consumos),
+        "consumos": consumos,
+    }
+
+
 async def registrar(conn: Connection, datos: ConsumoInternoIn):
     async with conn.transaction():
         cabecera = await conn.fetchrow(

@@ -39,6 +39,28 @@ async def estado_solicitud_internacion(
     return estado
 
 
+@router_integracion.get("/{id_consumo}/estado")
+async def estado_consumo_farmacia(
+    id_consumo: int, conn: Connection = Depends(get_conn)
+):
+    """Consulta directa para formularios de Farmacia que ya tienen id_consumo."""
+    estado = await modelo.estado_por_consumo(conn, id_consumo)
+    if not estado:
+        raise HTTPException(status_code=404, detail="Consumo interno no encontrado")
+    return estado
+
+
+@router_integracion.get("/prescripciones/{id_prescripcion}/estado")
+async def estado_prescripcion_internacion(
+    id_prescripcion: int, conn: Connection = Depends(get_conn)
+):
+    """Internación consulta el avance de una receta, incluso con entregas parciales."""
+    estado = await modelo.estado_por_prescripcion(conn, id_prescripcion)
+    if not estado:
+        raise HTTPException(status_code=404, detail="Prescripción aún no registrada en Farmacia")
+    return estado
+
+
 @router_integracion.post("/solicitudes", status_code=201)
 async def recibir_solicitud_internacion(
     datos: SolicitudInternacionIn, conn: Connection = Depends(get_conn)
