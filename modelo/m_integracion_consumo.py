@@ -11,6 +11,7 @@ class PrescripcionInternacion(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     id_prescripcion: int = Field(gt=0)
+    id_detalle: int | None = Field(default=None, gt=0)
     id_producto: int = Field(gt=0)
     cantidad: Decimal = Field(gt=0)
     id_paciente: int | str | None = None
@@ -39,7 +40,23 @@ async def obtener_prescripciones(cliente, id_prescripcion: int | None = None):
     items = payload.get("prescripciones", []) if isinstance(payload, dict) else payload
     if not isinstance(items, list):
         raise ValueError("Internación devolvió un formato inválido")
-    resultado = [PrescripcionInternacion.model_validate(item).model_dump() for item in items]
+    filas = []
+    for item in items:
+        # Se aceptan ambos contratos: una línea por registro o una receta con
+        # varios detalles anidados.
+        detalles = item.get("detalles") if isinstance(item, dict) else None
+        if isinstance(detalles, list):
+            base = {k: v for k, v in item.items() if k != "detalles"}
+            for detalle in detalles:
+                filas.append({**base, **detalle, "id_prescripcion": item["id_prescripcion"]})
+        else:
+            filas.append(item)
+    resultado = []
+    for item in filas:
+        normalizado = PrescripcionInternacion.model_validate(item).model_dump()
+        if normalizado["id_detalle"] is None:
+            normalizado["id_detalle"] = normalizado["id_prescripcion"]
+        resultado.append(normalizado)
     if id_prescripcion is not None:
         resultado = [item for item in resultado if item["id_prescripcion"] == id_prescripcion]
     return resultado
