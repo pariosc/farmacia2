@@ -80,7 +80,7 @@
 
   $("btnReintentarConsumo").addEventListener("click", cargarHistorial);
   $("btnCargarPrescripcionesInternacion").addEventListener("click", cargarPrescripcionesInternacion);
-  $("tablaPrescripcionesInternacion").addEventListener("click", event => {const boton=event.target.closest(".usar-prescripcion");if(!boton)return;const item=(window._prescripcionesInternacion||[]).find(p=>Number(p.id_prescripcion)===Number(boton.dataset.id));if(item){$("detallesConsumo").innerHTML="";agregarPrescripcion(item);document.querySelector('[data-bs-target="#solicitudes-pane"]').click();}});
+  $("tablaPrescripcionesInternacion").addEventListener("click", event => {const boton=event.target.closest(".usar-prescripcion");if(!boton)return;const item=(window._prescripcionesInternacion||[]).find(p=>Number(p.id_prescripcion)===Number(boton.dataset.id));if(item){$("consumoPacienteTexto").textContent=item.id_paciente??"No informado";show("consumoPacienteResumen",true);$("detallesConsumo").innerHTML="";agregarPrescripcion(item);document.querySelector('[data-bs-target="#solicitudes-pane"]').click();}});
   $("btnAgregarDetalleConsumo").addEventListener("click", agregarDetalle);
   $("detallesConsumo").addEventListener("click", event => {if(event.target.closest(".cons-quitar")){event.target.closest("tr").remove();if(!$("detallesConsumo").children.length)agregarDetalle();}});
   $("consumoForm").addEventListener("submit", () => {document.querySelectorAll("#detallesConsumo tr").forEach(row => {if(!row.querySelector(".cons-producto-id") && !row.querySelector(".cons-lote")?.value) row.remove();});});
