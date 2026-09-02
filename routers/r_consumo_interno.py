@@ -28,6 +28,17 @@ async def listar_prescripciones_internacion(request: Request):
         raise HTTPException(status_code=502, detail=str(error)) from error
 
 
+@router_integracion.get("/solicitudes/{id_solicitud}/estado")
+async def estado_solicitud_internacion(
+    id_solicitud: int, conn: Connection = Depends(get_conn)
+):
+    """Internación consulta si su prescripción ya fue entregada."""
+    estado = await modelo.estado_por_solicitud(conn, id_solicitud)
+    if not estado:
+        raise HTTPException(status_code=404, detail="Solicitud aún no registrada en Farmacia")
+    return estado
+
+
 @router_integracion.post("/solicitudes", status_code=201)
 async def recibir_solicitud_internacion(
     datos: SolicitudInternacionIn, conn: Connection = Depends(get_conn)

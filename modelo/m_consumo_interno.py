@@ -31,6 +31,28 @@ async def obtener(conn: Connection, id_consumo: int):
     return resultado
 
 
+async def estado_por_solicitud(conn: Connection, id_solicitud: int):
+    """Devuelve el estado que Internación necesita consultar."""
+    cabecera = await conn.fetchrow(
+        "SELECT id_consumo, id_solicitud_insumo, id_prescripcion, estado, "
+        "fecha_consumo, observacion FROM tf_consumos_internos "
+        "WHERE id_solicitud_insumo = $1 "
+        "ORDER BY id_consumo DESC LIMIT 1",
+        id_solicitud,
+    )
+    if not cabecera:
+        return None
+    detalles = await conn.fetch(
+        "SELECT id_detalle_consumo, id_producto, id_lote, cantidad_entregada "
+        "FROM tf_detalles_consumo WHERE id_consumo = $1 ORDER BY id_detalle_consumo",
+        cabecera["id_consumo"],
+    )
+    resultado = dict(cabecera)
+    resultado["entregado"] = resultado["estado"] == "REGISTRADO"
+    resultado["detalles"] = [dict(detalle) for detalle in detalles]
+    return resultado
+
+
 async def registrar(conn: Connection, datos: ConsumoInternoIn):
     async with conn.transaction():
         cabecera = await conn.fetchrow(
