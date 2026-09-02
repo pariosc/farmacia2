@@ -17,6 +17,9 @@
         throw new Error("Sesión visual inválida");
       }
       return {
+        id_usuario: Number.isInteger(Number(user.id_usuario)) && Number(user.id_usuario) > 0
+          ? Number(user.id_usuario)
+          : null,
         username: user.username.trim(),
         role: typeof user.role === "string" && user.role.trim()
           ? user.role.trim().toUpperCase()
@@ -30,6 +33,9 @@
 
   const guardarUsuario = user => {
     const normalized = {
+      id_usuario: Number.isInteger(Number(user.id_usuario)) && Number(user.id_usuario) > 0
+        ? Number(user.id_usuario)
+        : null,
       username: String(user.username || "").trim(),
       role: user.role ? String(user.role).trim().toUpperCase() : null,
     };

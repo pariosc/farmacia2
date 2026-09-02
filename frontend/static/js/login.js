@@ -58,6 +58,10 @@
         throw new Error("Seguridad no devolvió el nombre del usuario");
       }
 
+      const rawUserId = data.id_usuario ?? null;
+      const userId = Number.isInteger(Number(rawUserId)) && Number(rawUserId) > 0
+        ? Number(rawUserId)
+        : null;
       const rawRole = data.role ?? data.rol ?? null;
       const role = typeof rawRole === "string" && rawRole.trim()
         ? rawRole.trim().toUpperCase()
@@ -66,7 +70,11 @@
         throw new Error("No tienes permiso para ingresar al módulo de Farmacia");
       }
 
-      window.AppSession.guardarUsuario({username: data.usuario, role});
+      window.AppSession.guardarUsuario({
+        id_usuario: userId,
+        username: data.usuario,
+        role,
+      });
       window.location.replace("/productos");
     } catch (error) {
       passwordInput.value = "";

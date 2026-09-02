@@ -37,10 +37,12 @@ el nombre, pero no como sesión ni autorización: no existe token, `id_usuario`,
 vigencia o rol verificable. La URL temporal se configura mediante
 `SEGURIDAD_LOGIN_URL` y no activa las dependencias Bearer del backend.
 
-El navegador conserva temporalmente solo `{username, role}` en
-`localStorage`; este dato es modificable y nunca autoriza operaciones. Falta
-confirmar CORS para el origen de Farmacia y HTTPS para evitar enviar claves por
-HTTP.
+El navegador conserva temporalmente `{id_usuario, username, role}` en
+`localStorage`; `id_usuario` queda nulo con la respuesta actual. Si Seguridad
+lo incorpora, Dispensaciones y Consumo interno lo asignan visualmente como
+responsable y bloquean el campo; esto sigue siendo modificable y nunca autoriza
+operaciones. Falta HTTPS para evitar enviar claves por HTTP. El preflight CORS
+desde Farmacia fue aceptado durante la prueba del 02/09/2026.
 
 ### Contrato requerido para autorización real
 

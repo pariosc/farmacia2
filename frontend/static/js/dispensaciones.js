@@ -3,6 +3,19 @@
   const $ = id => document.getElementById(id);
   const state = {receta:null, notas:[], notaActual:null, editando:null, prescripcionesPaciente:[], productos:{}, ventaItems:[]};
   const modal = new bootstrap.Modal($("notaModal"));
+  const usuarioSesion = window.AppSession?.obtenerUsuarioActual() || null;
+  function configurarResponsable(inputId, ayudaId) {
+    const input = $(inputId), ayuda = $(ayudaId);
+    if (usuarioSesion?.id_usuario) {
+      input.value = String(usuarioSesion.id_usuario);
+      input.readOnly = true;
+      ayuda.textContent = `Asignado por login: ${usuarioSesion.username} (#${usuarioSesion.id_usuario}).`;
+      return;
+    }
+    ayuda.textContent = "Seguridad aún no devuelve id_usuario; usa el ID manual de transición.";
+  }
+  configurarResponsable("notaUsuario", "notaUsuarioAyuda");
+  configurarResponsable("ventaUsuario", "ventaUsuarioAyuda");
   const usuarioInicial = Number($("notaUsuario").value) || 1;
   const usuarioVentaInicial = Number($("ventaUsuario").value) || 1;
   const show = (id, visible) => $(id).classList.toggle("d-none", !visible);
