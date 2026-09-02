@@ -8,6 +8,7 @@
   const errorText = error => error.message === "Failed to fetch" ? "No se pudo conectar con el servidor." : error.message;
   const fecha = value => value ? new Intl.DateTimeFormat("es-BO", {timeZone:"UTC"}).format(new Date(`${value}T00:00:00Z`)) : "—";
   const cantidad = value => Number(value || 0).toLocaleString("es-BO", {minimumFractionDigits:0,maximumFractionDigits:2});
+  async function cargarPrescripcionesInternacion(){const boton=$("btnCargarPrescripcionesInternacion");show("prescripcionesInternacionCarga",true);show("prescripcionesInternacionResultado",false);show("prescripcionesInternacionError",false);boton.disabled=true;try{const respuesta=await App.api("/api/v1/farmacia/consumos-internos/prescripciones");const items=respuesta.prescripciones||[];$("tablaPrescripcionesInternacion").innerHTML=items.map(p=>`<tr><td>#${p.id_prescripcion}</td><td>${App.escapeHtml(p.id_paciente??"—")}</td><td><span class="product-name">${App.escapeHtml(p.nombre_producto)}</span><span class="product-detail">ID: ${p.id_producto}</span></td><td>${cantidad(p.cantidad)}</td><td>${App.escapeHtml([p.dosis,p.frecuencia,p.via_administracion,p.duracion].filter(Boolean).join(" · ")||"—")}</td></tr>`).join("");show("prescripcionesInternacionCarga",false);show("prescripcionesInternacionResultado",true)}catch(error){show("prescripcionesInternacionCarga",false);$("prescripcionesInternacionError").textContent=errorText(error);show("prescripcionesInternacionError",true)}finally{boton.disabled=false}}
   const producto = id => state.productos.find(item => item.id_producto === id);
   const lote = id => state.lotes.find(item => item.id_lote === id);
   const badgeEstado = estado => `<span class="badge-soft ${estado === "REGISTRADO" ? "success" : estado === "PENDIENTE" ? "warning" : "muted"}">${App.escapeHtml(estado)}</span>`;
@@ -77,6 +78,7 @@
   }
 
   $("btnReintentarConsumo").addEventListener("click", cargarHistorial);
+  $("btnCargarPrescripcionesInternacion").addEventListener("click", cargarPrescripcionesInternacion);
   $("btnAgregarDetalleConsumo").addEventListener("click", agregarDetalle);
   $("detallesConsumo").addEventListener("click", event => {if(event.target.closest(".cons-quitar")){event.target.closest("tr").remove();if(!$("detallesConsumo").children.length)agregarDetalle();}});
   $("consumoForm").addEventListener("submit", guardarConsumo);
