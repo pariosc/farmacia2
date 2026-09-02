@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from asyncpg import Connection
 
 from configuracion.conexion import get_conn
 from entidades.farmacia_consumo import ConsumoInternoIn, SolicitudInternacionIn
 from modelo import m_consumo_interno as modelo
+from modelo.m_integracion_consumo import obtener_prescripciones
+from configuracion.integracion import IntegracionError, IntegracionNoConfigurada
 
 router = APIRouter(prefix="/consumo-interno", tags=["Farmacia - Consumo Interno"])
 
@@ -11,6 +13,19 @@ router_integracion = APIRouter(
     prefix="/api/v1/farmacia/consumos-internos",
     tags=["Integración - Internación"],
 )
+
+
+@router_integracion.get("/prescripciones")
+async def listar_prescripciones_internacion(request: Request):
+    """Proxy de prescripciones; consultar no reserva ni descuenta stock."""
+    try:
+        return {"prescripciones": await obtener_prescripciones(
+            request.app.state.http_integraciones
+        )}
+    except IntegracionNoConfigurada as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except (IntegracionError, ValueError) as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
 
 
 @router_integracion.post("/solicitudes", status_code=201)
