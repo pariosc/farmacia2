@@ -30,6 +30,9 @@ async def obtener_prescripciones(cliente, id_prescripcion: int | None = None):
         cliente,
         config.integracion_consumo_url or config.integracion_solicitudes_url,
         "/prescripcion/farmacia/",
+        auth=(config.integracion_consumo_usuario, config.integracion_consumo_clave)
+        if config.integracion_consumo_usuario and config.integracion_consumo_clave
+        else None,
     )
     if payload is None:
         return []

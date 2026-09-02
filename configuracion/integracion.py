@@ -40,6 +40,7 @@ async def pedir_json(
     params: dict | None = None,
     json: dict | None = None,
     headers: dict | None = None,
+    auth: tuple[str, str] | None = None,
 ):
     """Ejecuta una llamada JSON sin convertir fallos externos en autorizaciones.
 
@@ -58,6 +59,7 @@ async def pedir_json(
             params=params,
             json=json,
             headers=headers,
+            auth=auth,
         )
     except httpx.HTTPError as error:
         raise IntegracionError(f"No se pudo conectar con {url}") from error

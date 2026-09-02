@@ -29,6 +29,8 @@ class Config(BaseSettings):
     integracion_cobros_url: str | None = None
     integracion_solicitudes_url: str | None = None
     integracion_consumo_url: str | None = None
+    integracion_consumo_usuario: str | None = None
+    integracion_consumo_clave: str | None = None
     integracion_timeout_segundos: float = 5.0
     reserva_dispensacion_minutos: int = Field(default=30, ge=5, le=240)
 
