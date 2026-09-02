@@ -79,6 +79,8 @@
   }
 
   $("btnReintentarConsumo").addEventListener("click", cargarHistorial);
+  const etiquetaSolicitud=document.querySelector('label[for="consumoSolicitud"]');if(etiquetaSolicitud)etiquetaSolicitud.textContent="Referencia de solicitud (legado)";
+  const etiquetaPrescripcion=document.querySelector('label[for="consumoPrescripcion"]');if(etiquetaPrescripcion)etiquetaPrescripcion.textContent="Prescripción de Internación";
   $("btnCargarPrescripcionesInternacion").addEventListener("click", cargarPrescripcionesInternacion);
   $("tablaPrescripcionesInternacion").addEventListener("click", event => {const boton=event.target.closest(".usar-prescripcion");if(!boton)return;const item=(window._prescripcionesInternacion||[]).find(p=>Number(p.id_prescripcion)===Number(boton.dataset.id));if(item){$("consumoPacienteTexto").textContent=item.id_paciente??"No informado";show("consumoPacienteResumen",true);$("detallesConsumo").innerHTML="";agregarPrescripcion(item);document.querySelector('[data-bs-target="#solicitudes-pane"]').click();}});
   $("btnAgregarDetalleConsumo").addEventListener("click", agregarDetalle);
