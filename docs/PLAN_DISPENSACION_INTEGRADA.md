@@ -68,8 +68,8 @@ estado `PARCIAL` dentro de cada dispensación.
 | `ANULACION_SOLICITADA` | No | Espera confirmación de Cobros | Reserva conservada |
 | `ANULADA` | No | Ya anulada | Reserva liberada |
 
-La duración propuesta de una reserva sin pago es 30 minutos y debe ser
-configurable. Este valor todavía necesita confirmación operativa.
+La reserva sin pago dura cuatro horas por defecto (`240` minutos) y permanece
+configurable mediante `RESERVA_DISPENSACION_MINUTOS`.
 
 ## Edición/anulación desde el modal
 

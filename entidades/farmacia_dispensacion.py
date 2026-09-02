@@ -16,7 +16,7 @@ class DispensacionIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id_factura: int
     id_usuario: int
-    fecha_dispensacion: date
+    fecha_dispensacion: date = Field(default_factory=date.today)
     observacion: Optional[str] = None
     detalles: List[DetalleDispensacionIn] = Field(min_length=1)
 
@@ -64,7 +64,8 @@ class PagoDispensacionIn(BaseModel):
     @field_validator("id_paciente", mode="before")
     @classmethod
     def normalizar_paciente(cls, valor):
-        return str(valor).strip()
+        # Las ventas mostrador pueden no tener paciente asociado.
+        return None if valor is None else str(valor).strip()
 
 
 class ConfirmacionAnulacionCobrosIn(BaseModel):

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-sesion-visual="required">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +7,7 @@
   <link rel="icon" href="{{ url_for('static', path='/img/favicon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', path='/vendor/bootstrap/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', path='/css/app.css') }}?v=20260828">
+  <script src="{{ url_for('static', path='/js/sesion.js') }}?v=20260902" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -37,11 +38,11 @@
         <button class="btn btn-icon d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Abrir menú">☰</button>
         <div class="topbar-context"><strong>Farmacia e Inventario</strong><small>Hospital de Segundo Nivel TODO SANO</small></div>
         <div class="dropdown ms-auto">
-          <button class="user-menu dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><span class="avatar">U</span><span class="d-none d-sm-block"><strong>{{ usuario_nombre|default('Usuario') }}</strong><small>Sesión no integrada</small></span></button>
+          <button class="user-menu dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><span class="avatar" id="usuarioAvatar">U</span><span class="d-none d-sm-block"><strong id="usuarioNombre">{{ usuario_nombre|default('Usuario') }}</strong><small id="usuarioRol">Rol pendiente</small></span></button>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><span class="dropdown-item-text small text-secondary">Autenticación pendiente</span></li>
+            <li><span class="dropdown-item-text small text-secondary">Sesión visual temporal</span></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="/login">Volver al login</a></li>
+            <li><button class="dropdown-item" id="btnCerrarSesion" type="button">Cerrar sesión</button></li>
           </ul>
         </div>
       </header>

@@ -1,26 +1,28 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-sesion-visual="login">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Iniciar sesión | TODO SANO</title>
   <link rel="icon" href="{{ url_for('static', path='/img/favicon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', path='/vendor/bootstrap/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', path='/css/app.css') }}">
+  <script src="{{ url_for('static', path='/js/sesion.js') }}?v=20260902" defer></script>
 </head>
 <body class="login-page">
   <main class="login-shell">
     <section class="login-card" aria-labelledby="loginTitle">
       <div class="login-brand"><span class="brand-mark" aria-hidden="true">+</span><div><strong>Hospital TODO SANO</strong><small>Segundo nivel de atención</small></div></div>
       <div class="login-heading"><p class="eyebrow">Farmacia e Inventario</p><h1 id="loginTitle">Iniciar sesión</h1><p>Ingresa tus credenciales institucionales para continuar.</p></div>
-      <div class="alert alert-warning login-notice" role="status"><strong>Integración pendiente.</strong> El backend todavía no dispone de autenticación. Tus credenciales no serán enviadas ni almacenadas.</div>
-      <form id="loginForm" novalidate>
+      <div class="alert alert-warning login-notice" role="status"><strong>Acceso temporal.</strong> Seguridad validará tus credenciales, pero esta sesión visual todavía no protege la API de Farmacia.</div>
+      <div id="loginError" class="alert alert-danger d-none" role="alert" aria-live="assertive"></div>
+      <form id="loginForm" data-seguridad-url="{{ seguridad_login_url|default('', true) }}" novalidate>
         <div class="mb-3"><label for="usuario" class="form-label">Usuario o correo</label><input id="usuario" class="form-control" type="text" autocomplete="username" placeholder="usuario@todosano.bo" required></div>
         <div class="mb-3"><label for="password" class="form-label">Contraseña</label><input id="password" class="form-control" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña" required></div>
-        <button class="btn btn-primary w-100" type="submit" disabled>Iniciar sesión</button>
+        <button class="btn btn-primary w-100" id="loginSubmit" type="submit">Iniciar sesión</button>
       </form>
-      <a class="btn btn-outline-secondary w-100 mt-3" href="/productos">Vista previa de Productos</a>
-      <p class="login-help">La vista previa solo facilita la revisión visual y no representa una sesión autenticada.</p>
+      <p class="login-help">No se almacena la contraseña. Seguridad aún debe proporcionar token, identidad y roles para proteger el módulo realmente.</p>
     </section>
   </main>
+  <script src="{{ url_for('static', path='/js/login.js') }}?v=20260902" defer></script>
 </body>
 </html>

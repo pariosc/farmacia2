@@ -19,6 +19,7 @@ class Config(BaseSettings):
 
     # URLs base de módulos externos. Permanecen opcionales mientras no exista
     # un contrato confirmado. Ver docs/CONTRATOS_INTEGRACION.md antes de usar.
+    seguridad_login_url: str | None = None
     integracion_seguridad_url: str | None = None
     integracion_atencion_url: str | None = Field(
         default=None,
@@ -32,7 +33,9 @@ class Config(BaseSettings):
     integracion_consumo_usuario: str | None = None
     integracion_consumo_clave: str | None = None
     integracion_timeout_segundos: float = 5.0
-    reserva_dispensacion_minutos: int = Field(default=30, ge=5, le=240)
+    # La reserva debe dar tiempo suficiente para que Cobros genere el comprobante.
+    # Puede reducirse por entorno, pero por defecto dura cuatro horas.
+    reserva_dispensacion_minutos: int = Field(default=240, ge=5, le=240)
 
 
 config = Config()

@@ -46,6 +46,7 @@ Usar PostgreSQL `snake_case` y la convención `id_producto`, `id_compra`, `id_lo
 - `frontend/templates/`: plantillas Jinja compartidas.
 - `frontend/static/css/app.css`: sistema visual común.
 - `frontend/static/js/app.js`: utilidades comunes de UI y Fetch.
+- `frontend/static/js/sesion.js` y `frontend/static/js/login.js`: acceso visual temporal contra Seguridad, persistencia no autoritativa del nombre/rol y redirección de páginas; no protegen la API ni sustituyen una sesión backend.
 - `frontend/static/vendor/bootstrap/`: distribución local de Bootstrap 5.3.8 (CSS, bundle JS con Popper, mapas y licencia) para que la interfaz no dependa de CDN ni de acceso a Internet.
 - `frontend/static/js/productos.js`, `frontend/static/js/proveedores.js`, `frontend/static/js/compras.js`, `frontend/static/js/inventario.js`, `frontend/static/js/dispensaciones.js`, `frontend/static/js/consumos.js` y `frontend/static/js/kardex.js`: comportamiento exclusivo de cada página.
 - `docs/CONTRATOS_INTEGRACION.md`: fuente de los contratos pendientes con Seguridad, Atención, Cobros e Internación/Solicitudes. Una URL configurada no habilita por sí sola una integración.
@@ -82,7 +83,9 @@ El frontend tiene siete áreas principales: Productos, Proveedores, Compras, Inv
 
 ## Autenticación: estado y decisión actual
 
-El SQL define `ts_usuarios`, `ts_roles` y `ts_roles_usuarios`, pero el backend actual no contiene router, servicio, verificación de contraseña, tokens ni sesiones. Por ello `login.html` es solo la pantalla visual y no autentica ni almacena credenciales. No implementar autenticación paralela, no simular sesiones y no presentar un usuario como autenticado hasta que el módulo de Seguridad exponga su contrato. Los endpoints REST actuales son públicos. Cuando exista autenticación, integrar esta pantalla con ese mecanismo y proteger tanto vistas como API.
+Seguridad expone temporalmente `POST /login/`, que recibe `usuario` y `clave`, pero su respuesta solo contiene el nombre de usuario: todavía no incluye token, `id_usuario`, vigencia ni rol. `login.html` consulta esa ruta desde JavaScript vanilla y conserva en `localStorage` únicamente `{username, role}` para presentación y redirección visual; nunca almacena la contraseña. `SEGURIDAD_LOGIN_URL` configura exclusivamente este acceso temporal y no debe confundirse con `INTEGRACION_SEGURIDAD_URL`, que activa la validación Bearer del backend.
+
+El control visual no constituye autorización: `localStorage` es modificable, las vistas FastAPI pueden solicitarse directamente y los endpoints REST continúan públicos. Si Seguridad comienza a devolver `rol`, la UI admite visualmente `FARMACEUTICO` y `ADMINISTRADOR`; mientras no lo devuelva muestra `Rol pendiente`. No usar ese valor para decisiones de inventario. La integración definitiva requiere token o cookie segura, `id_usuario`, vigencia, cierre de sesión y un contrato para validar la sesión en backend; entonces debe retirarse este modo temporal y proteger tanto vistas como API sin crear autenticación paralela.
 
 ## Endpoints existentes relevantes para Productos
 

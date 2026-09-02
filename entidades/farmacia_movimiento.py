@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from decimal import Decimal
 from datetime import date
@@ -13,5 +13,5 @@ class MovimientoInventario(BaseModel):
     id_detalle_consumo: Optional[int] = None
     tipo_movimiento: str        # ENTRADA, SALIDA o AJUSTE
     cantidad: Decimal
-    fecha_movimiento: date
+    fecha_movimiento: date = Field(default_factory=date.today)
     motivo: Optional[str] = None

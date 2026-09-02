@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from decimal import Decimal
 from datetime import date
@@ -16,5 +16,5 @@ class CompraIn(BaseModel):
     id_proveedor: int
     id_usuario: int
     numero_documento: Optional[str] = None
-    fecha_compra: date
+    fecha_compra: date = Field(default_factory=date.today)
     detalles: List[DetalleCompraIn]

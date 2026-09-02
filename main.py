@@ -68,12 +68,20 @@ async def favicon():
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def raiz(request: Request):
-    return templates.TemplateResponse(request=request, name="login.html")
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"seguridad_login_url": config.seguridad_login_url},
+    )
 
 
 @app.get("/login", response_class=HTMLResponse, include_in_schema=False)
 async def login(request: Request):
-    return templates.TemplateResponse(request=request, name="login.html")
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"seguridad_login_url": config.seguridad_login_url},
+    )
 
 
 @app.get("/productos", response_class=HTMLResponse, include_in_schema=False)

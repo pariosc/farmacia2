@@ -380,6 +380,22 @@ async def obtener_para_cobro(conn: Connection, id_dispensacion: int):
     resultado = dict(fila)
     # Contrato monetario para Cobros: texto con dos decimales, no float.
     resultado["total"] = f"{resultado['total']:.2f}"
+    detalles = await conn.fetch(
+        "SELECT dd.id_detalle_dispensacion, dd.id_producto, p.nombre, "
+        "dd.cantidad_solicitada, dd.precio_unitario, dd.subtotal, p.unidad_medida "
+        "FROM tf_detalles_dispensacion dd "
+        "JOIN tf_productos p ON p.id_producto = dd.id_producto "
+        "WHERE dd.id_dispensacion = $1 ORDER BY dd.id_detalle_dispensacion",
+        id_dispensacion,
+    )
+    resultado["detalles"] = [
+        {
+            **dict(detalle),
+            "precio_unitario": f"{detalle['precio_unitario']:.2f}",
+            "subtotal": f"{detalle['subtotal']:.2f}",
+        }
+        for detalle in detalles
+    ]
     return resultado
 
 

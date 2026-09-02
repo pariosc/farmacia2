@@ -27,7 +27,7 @@ class ConsumoInternoIn(BaseModel):
     id_solicitud_insumo: Optional[int] = None
     id_prescripcion: Optional[int] = None
     id_usuario: int
-    fecha_consumo: date
+    fecha_consumo: date = Field(default_factory=date.today)
     observacion: Optional[str] = None
     detalles: List[DetalleConsumoIn] = Field(min_length=1)
 

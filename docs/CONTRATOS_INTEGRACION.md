@@ -21,6 +21,29 @@ agregar pruebas. Configurar Seguridad activa token y roles en rutas protegidas.
 
 Propietario: módulo de Seguridad.
 
+### Login visual temporal confirmado
+
+Seguridad comunicó la ruta:
+
+```http
+POST http://26.154.63.158:8000/login/
+Content-Type: application/json
+```
+
+con el cuerpo `{"usuario": "nombre_usuario", "clave": "contraseña"}`. La
+respuesta actual de éxito solo incluye `usuario`; un fallo de credenciales
+responde HTTP 401. Farmacia puede usarla para validar el formulario y mostrar
+el nombre, pero no como sesión ni autorización: no existe token, `id_usuario`,
+vigencia o rol verificable. La URL temporal se configura mediante
+`SEGURIDAD_LOGIN_URL` y no activa las dependencias Bearer del backend.
+
+El navegador conserva temporalmente solo `{username, role}` en
+`localStorage`; este dato es modificable y nunca autoriza operaciones. Falta
+confirmar CORS para el origen de Farmacia y HTTPS para evitar enviar claves por
+HTTP.
+
+### Contrato requerido para autorización real
+
 Farmacia necesita validar el token recibido y obtener como mínimo:
 
 ```json
